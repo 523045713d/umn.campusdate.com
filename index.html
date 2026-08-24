@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GopherDate · Meet on campus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f9f6f2;
+            color: #1e1b1a;
+            line-height: 1.6;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 48px 48px 32px 32px;
+            padding: 32px 40px 56px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+            border: 1px solid #ede8e0;
+            position: relative;
+        }
+
+        /* ===== Logo in top-left ===== */
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: #1e1b1a;
+            position: absolute;
+            top: 32px;
+            left: 40px;
+        }
+        .logo span {
+            background: #f5e1d0;
+            padding: 0 8px 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* ===== Central banner (exactly your screenshot order) ===== */
+        .hero-banner {
+            text-align: center;
+            padding: 80px 20px 60px;
+            margin-top: 20px;
+        }
+        .hero-banner h1 {
+            font-size: 3.2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            color: #1e1b1a;
+        }
+        .hero-banner h1 .highlight {
+            background: #f5e1d0;
+            padding: 0 12px 4px 12px;
+            border-radius: 40px;
+            display: inline-block;
+        }
+        .hero-banner .btn {
+            margin-top: 32px;
+            background: #1e1b1a;
+            color: #fff;
+            padding: 16px 56px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .hero-banner .btn:hover {
+            background: #2f2926;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        /* ===== Feature cards ===== */
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 60px 0 48px 0;
+        }
+        .feature-card {
+            background: #f5f2ed;
+            border-radius: 28px;
+            padding: 28px 24px 32px;
+            border: 1px solid #ede8e0;
+            transition: 0.2s ease;
+        }
+        .feature-card:hover {
+            background: #fcfaf8;
+            border-color: #d6cec4;
+        }
+        .feature-card .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .feature-card h3 {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+            color: #1e1b1a;
+        }
+        .feature-card p {
+            font-size: 0.92rem;
+            color: #5b4f49;
+            margin: 0;
+        }
+
+        /* ===== Form section (scroll target) ===== */
+        .cta-section {
+            text-align: center;
+            margin: 40px 0 24px 0;
+            padding: 32px 20px 20px;
+            border-top: 1px solid #ede8e0;
+        }
+        .cta-section h2 {
+            font-weight: 600;
+            font-size: 1.6rem;
+            color: #1e1b1a;
+            margin-bottom: 12px;
+        }
+        .cta-section p {
+            color: #5b4f49;
+            margin-bottom: 24px;
+        }
+        .form-wrapper {
+            background: #f5f2ed;
+            border-radius: 32px;
+            padding: 16px;
+            border: 1px solid #ede8e0;
+        }
+        .form-wrapper iframe {
+            width: 100%;
+            height: 700px;
+            border: none;
+            border-radius: 24px;
+            background: #ffffff;
+            display: block;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 600px) {
+            .container { padding: 24px 16px 32px; }
+            .logo { position: static; margin-bottom: 8px; font-size: 1.3rem; }
+            .hero-banner { padding: 40px 10px 30px; }
+            .hero-banner h1 { font-size: 2.2rem; }
+            .features { grid-template-columns: 1fr; }
+            .form-wrapper iframe { height: 560px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ===== Logo in top-left ===== -->
+    <div class="logo">
+        <span>Gopher</span>Date
+    </div>
+
+    <!-- ===== Central banner: "Meet the right person" is exactly in the middle ===== -->
+    <div class="hero-banner">
+        <h1>
+            No more swiping<br>
+            <span class="highlight">Meet the right person</span><br>
+            On UMN campus
+        </h1>
+        <button class="btn" onclick="document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });">
+            Start
+        </button>
+    </div>
+
+    <!-- ===== Feature cards ===== -->
+    <div class="features">
+        <div class="feature-card">
+            <div class="icon">📅</div>
+            <h3>Seriousness</h3>
+            <p>No swiping. Matches are revealed every Wednesday 4PM — at most one match per week.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">🧩</div>
+            <h3>AI-powered matching</h3>
+            <p>Our algorithm learns what matters to you. Not just similarity — we look for complementary differences that actually click.Based on values, emotional style, and lifestyle.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">🔒</div>
+            <h3>Privacy first</h3>
+            <p>Not a public social platform. You only see your match, and they see only you. No public profiles, no feeds, no following.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">🎓</div>
+            <h3>Students only</h3>
+            <p>Verified with a campus email. Everyone you meet is walking the same campus.</p>
+        </div>
+    </div>
+
+    <!-- ===== Form section (scroll target) ===== -->
+    <div id="form-section" class="cta-section">
+        <h2>Ready?</h2>
+        <p>Join GopherDate and meet someone on campus.</p>
+        <div class="form-wrapper">
+            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfxU0j_hLVPew7uLGdMFptPbH3r9IMURiLLgzFIsQZL02qE4Q/viewform?embedded=true" width="700" height="520" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
