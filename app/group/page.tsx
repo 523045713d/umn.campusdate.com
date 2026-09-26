@@ -1,37 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import type { Plan } from "@/types";
 import { loadPlans } from "@/lib/store";
 
 export default function GroupPage() {
+  const router = useRouter();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchGroup() {
+      const user = await getCurrentUser();
+
+      if (!user) {
+        router.replace("/login?next=/group");
+        return;
+      }
+
       const plans = await loadPlans();
 
       setPlan(
-        plans.find((item) =>
-          item.members.includes("You")
-        ) ??
-          plans[0] ??
-          null
+        plans.find((item) => item.memberIds.includes(user.id)) ?? null
       );
-
       setLoading(false);
     }
 
     fetchGroup();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return <div>Loading group...</div>;
   }
 
   if (!plan) {
-    return <div>No group yet.</div>;
+    return (
+      <section className="mx-auto max-w-3xl">
+        <h1 className="text-4xl font-semibold tracking-tight">My Group</h1>
+        <div className="mt-8 rounded-3xl bg-white p-8 text-center text-neutral-500">
+          You have not joined a plan yet.
+        </div>
+      </section>
+    );
   }
 
   const schedule =
@@ -61,30 +73,23 @@ export default function GroupPage() {
 
   return (
     <section className="mx-auto max-w-3xl">
-      <div className="text-sm text-neutral-500">
-        Group overview
-      </div>
-
+      <div className="text-sm text-neutral-500">Group overview</div>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">
         Your Group is Ready
       </h1>
 
       <div className="mt-8 rounded-[2rem] border border-black/5 bg-white p-7 shadow-sm">
-        <h2 className="text-2xl font-semibold">
-          {plan.title}
-        </h2>
-
+        <h2 className="text-2xl font-semibold">{plan.title}</h2>
         <p className="mt-2 text-neutral-600">
           {plan.location} · {plan.startsAt}
         </p>
 
         <div className="mt-7">
           <h3 className="font-semibold">Members</h3>
-
           <div className="mt-3 flex flex-wrap gap-2">
-            {plan.members.map((member) => (
+            {plan.members.map((member, index) => (
               <span
-                key={member}
+                key={`${member}-${index}`}
                 className="rounded-full bg-neutral-100 px-4 py-2 text-sm"
               >
                 {member} ✓
@@ -94,10 +99,7 @@ export default function GroupPage() {
         </div>
 
         <div className="mt-7 rounded-3xl bg-neutral-50 p-6">
-          <div className="text-sm text-neutral-500">
-            Suggested plan
-          </div>
-
+          <div className="text-sm text-neutral-500">Suggested plan</div>
           <h3 className="mt-1 text-xl font-semibold">
             Make the first meeting easy
           </h3>
@@ -108,10 +110,7 @@ export default function GroupPage() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-xs text-white">
                   {index + 1}
                 </span>
-
-                <span className="pt-1 text-neutral-700">
-                  {step}
-                </span>
+                <span className="pt-1 text-neutral-700">{step}</span>
               </li>
             ))}
           </ol>

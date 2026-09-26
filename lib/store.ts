@@ -1,10 +1,12 @@
 "use client";
 
+import { displayNameFromUser, getCurrentProfile, getCurrentUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import type { Plan, PlanCategory } from "@/types";
 
 type PlanRow = {
   id: string;
+  creator_id: string | null;
   creator_name: string;
   title: string;
   description: string;
@@ -16,17 +18,18 @@ type PlanRow = {
   status: string;
   created_at: string;
   plan_members?: Array<{
+    user_id: string | null;
     member_name: string;
   }>;
 };
 
 function mapPlan(row: PlanRow): Plan {
-  const members =
-    row.plan_members?.map((member) => member.member_name) ?? [];
+  const memberships = row.plan_members ?? [];
 
   return {
     id: row.id,
     creator: row.creator_name,
+    creatorId: row.creator_id,
     title: row.title,
     category: row.category,
     description: row.description,
@@ -34,26 +37,32 @@ function mapPlan(row: PlanRow): Plan {
     startsAt: row.start_time,
     duration: row.duration ?? "Flexible",
     maxPeople: row.max_people,
-    currentMembers: members.length,
+    currentMembers: memberships.length,
     matchScore: 88,
     reasons: [
       "Availability overlap",
       "Shared activity interest",
       "Compatible group size",
     ],
-    members,
+    members: memberships.map((member) => member.member_name),
+    memberIds: memberships
+      .map((member) => member.user_id)
+      .filter((id): id is string => Boolean(id)),
   };
 }
+
+const planSelect = `
+  *,
+  plan_members (
+    user_id,
+    member_name
+  )
+`;
 
 export async function loadPlans(): Promise<Plan[]> {
   const { data, error } = await supabase
     .from("plans")
-    .select(`
-      *,
-      plan_members (
-        member_name
-      )
-    `)
+    .select(planSelect)
     .eq("status", "open")
     .order("created_at", { ascending: false });
 
@@ -68,12 +77,7 @@ export async function loadPlans(): Promise<Plan[]> {
 export async function loadPlan(id: string): Promise<Plan | null> {
   const { data, error } = await supabase
     .from("plans")
-    .select(`
-      *,
-      plan_members (
-        member_name
-      )
-    `)
+    .select(planSelect)
     .eq("id", id)
     .single();
 
@@ -93,10 +97,20 @@ export async function createPlan(input: {
   startTime: string;
   maxPeople: number;
 }): Promise<Plan> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error("AUTH_REQUIRED");
+  }
+
+  const profile = await getCurrentProfile();
+  const memberName = profile?.name?.trim() || displayNameFromUser(user);
+
   const { data: plan, error: planError } = await supabase
     .from("plans")
     .insert({
-      creator_name: "You",
+      creator_id: user.id,
+      creator_name: memberName,
       title: input.title,
       category: input.category,
       description: input.description,
@@ -117,7 +131,8 @@ export async function createPlan(input: {
     .from("plan_members")
     .insert({
       plan_id: plan.id,
-      member_name: "You",
+      user_id: user.id,
+      member_name: memberName,
       role: "creator",
     });
 
@@ -136,11 +151,16 @@ export async function createPlan(input: {
 }
 
 export async function joinPlan(id: string): Promise<Plan | null> {
-  const current = await loadPlan(id);
+  const user = await getCurrentUser();
 
+  if (!user) {
+    throw new Error("AUTH_REQUIRED");
+  }
+
+  const current = await loadPlan(id);
   if (!current) return null;
 
-  if (current.members.includes("You")) {
+  if (current.memberIds.includes(user.id)) {
     return current;
   }
 
@@ -148,13 +168,15 @@ export async function joinPlan(id: string): Promise<Plan | null> {
     return current;
   }
 
-  const { error } = await supabase
-    .from("plan_members")
-    .insert({
-      plan_id: id,
-      member_name: "You",
-      role: "member",
-    });
+  const profile = await getCurrentProfile();
+  const memberName = profile?.name?.trim() || displayNameFromUser(user);
+
+  const { error } = await supabase.from("plan_members").insert({
+    plan_id: id,
+    user_id: user.id,
+    member_name: memberName,
+    role: "member",
+  });
 
   if (error) {
     console.error("joinPlan:", error);

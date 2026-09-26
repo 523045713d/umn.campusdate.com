@@ -2,23 +2,30 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-
+import { useParams, useRouter } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import type { Plan } from "@/types";
 import { joinPlan, loadPlan } from "@/lib/store";
 
 export default function PlanDetail() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
 
   const [plan, setPlan] = useState<Plan | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchPlan() {
-      const result = await loadPlan(params.id);
+      const [result, user] = await Promise.all([
+        loadPlan(params.id),
+        getCurrentUser(),
+      ]);
 
       setPlan(result);
+      setCurrentUserId(user?.id ?? null);
       setLoading(false);
     }
 
@@ -26,58 +33,60 @@ export default function PlanDetail() {
   }, [params.id]);
 
   async function handleJoin() {
+    if (!currentUserId) {
+      router.push(`/login?next=/plan/${params.id}`);
+      return;
+    }
+
     setJoining(true);
+    setError("");
 
     try {
       const updated = await joinPlan(params.id);
       setPlan(updated);
+    } catch (err) {
+      console.error(err);
+
+      if (err instanceof Error && err.message === "AUTH_REQUIRED") {
+        router.push(`/login?next=/plan/${params.id}`);
+        return;
+      }
+
+      setError("Could not join this plan.");
     } finally {
       setJoining(false);
     }
   }
 
   if (loading) {
-    return (
-      <div className="py-16 text-neutral-600">
-        Loading plan...
-      </div>
-    );
+    return <div className="py-16 text-neutral-600">Loading plan...</div>;
   }
 
   if (!plan) {
-    return (
-      <div className="py-16 text-neutral-600">
-        Plan not found.
-      </div>
-    );
+    return <div className="py-16 text-neutral-600">Plan not found.</div>;
   }
 
-  const joined = plan.members.includes("You");
-  const full =
-    plan.currentMembers >= plan.maxPeople;
+  const joined = currentUserId
+    ? plan.memberIds.includes(currentUserId)
+    : false;
+  const full = plan.currentMembers >= plan.maxPeople;
 
   return (
     <section className="mx-auto max-w-3xl">
-      <Link
-        href="/discover"
-        className="text-sm text-neutral-500"
-      >
+      <Link href="/discover" className="text-sm text-neutral-500">
         ← Back to discover
       </Link>
 
       <div className="mt-5 rounded-[2rem] border border-black/5 bg-white p-7 shadow-sm">
         <div className="flex flex-col justify-between gap-4 md:flex-row">
           <div>
-            <div className="text-sm text-neutral-500">
-              {plan.category}
-            </div>
-
-            <h1 className="mt-2 text-3xl font-semibold">
-              {plan.title}
-            </h1>
-
+            <div className="text-sm text-neutral-500">{plan.category}</div>
+            <h1 className="mt-2 text-3xl font-semibold">{plan.title}</h1>
             <p className="mt-3 max-w-2xl leading-7 text-neutral-600">
               {plan.description}
+            </p>
+            <p className="mt-3 text-sm text-neutral-500">
+              Created by {plan.creator}
             </p>
           </div>
 
@@ -95,10 +104,7 @@ export default function PlanDetail() {
         </div>
 
         <div className="mt-7">
-          <h2 className="font-semibold">
-            Why this matches you
-          </h2>
-
+          <h2 className="font-semibold">Why this matches you</h2>
           <div className="mt-3 grid gap-2">
             {plan.reasons.map((reason) => (
               <div
@@ -112,14 +118,11 @@ export default function PlanDetail() {
         </div>
 
         <div className="mt-7">
-          <h2 className="font-semibold">
-            Current group
-          </h2>
-
+          <h2 className="font-semibold">Current group</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            {plan.members.map((member) => (
+            {plan.members.map((member, index) => (
               <span
-                key={member}
+                key={`${member}-${index}`}
                 className="rounded-full bg-neutral-100 px-4 py-2 text-sm"
               >
                 {member}
@@ -127,6 +130,8 @@ export default function PlanDetail() {
             ))}
           </div>
         </div>
+
+        {error && <p className="mt-5 text-sm text-red-600">{error}</p>}
 
         <div className="mt-8 flex flex-wrap gap-3">
           <button
@@ -140,7 +145,9 @@ export default function PlanDetail() {
               ? "Joined"
               : full
               ? "Group Full"
-              : "Join Plan"}
+              : currentUserId
+              ? "Join Plan"
+              : "Log in to Join"}
           </button>
 
           <Link

@@ -1,37 +1,52 @@
-# Campus MVP v1
+# Campus MVP
 
-First local MVP for the campus activity matching project.
+Activity-first campus matching prototype built with Next.js, TypeScript, Tailwind CSS, and Supabase.
 
-This version intentionally does **not** use GitHub, Supabase, or a real backend yet. It validates the product flow first.
+## Current flow
 
-## What works
-- Landing page
-- Discover plans
-- Create a plan
-- Plan detail
-- Match score + reasons
-- Join plan
-- Group page
-- Suggested plan
-- Browser persistence with localStorage
+`Home → Discover/Create → Plan → Join → Group`
 
-## Run locally
+## Phase 1.1.3
+
+This branch adds real Supabase authentication and user identity.
+
+- Email/password sign up and login
+- Logout from the navigation bar
+- User profile page
+- Authenticated plan creation
+- Authenticated plan joining
+- Plans and memberships store real Supabase Auth UUIDs
+- Public discovery remains readable without logging in
+- RLS migration for authenticated writes
+
+## Local setup
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+```
+
+Then:
+
 ```bash
 npm install
 npm run dev
 ```
+
 Open `http://localhost:3000`.
 
-## MVP flow
-`Home → Discover/Create → Plan → Join → Group`
+## Database migration
 
-## Current architecture
-`Next.js + TypeScript + Tailwind → localStorage`
+Before testing Phase 1.1.3, run:
 
-## Next version
-1. Supabase
-2. Real accounts
-3. PostgreSQL plans
-4. Join requests
-5. Deterministic matching service
-6. Optional AI plan generation
+`supabase/migrations/001_auth.sql`
+
+in the Supabase SQL Editor.
+
+The migration creates the auth profile trigger, changes RLS so anonymous users can read plans while only authenticated users can create/join, and prevents duplicate plan membership for the same account.
+
+## Deployment flow
+
+Feature branches deploy as Vercel Preview deployments. Merge to `main` only after Preview testing passes; `main` remains the Production branch.

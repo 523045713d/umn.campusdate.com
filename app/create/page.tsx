@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import { createPlan } from "@/lib/store";
 import type { PlanCategory } from "@/types";
 
@@ -9,16 +10,25 @@ export default function CreatePage() {
   const router = useRouter();
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] =
-    useState<PlanCategory>("Study");
-
+  const [category, setCategory] = useState<PlanCategory>("Study");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [time, setTime] = useState("");
   const [maxPeople, setMaxPeople] = useState(4);
-
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    getCurrentUser().then((user) => {
+      if (!user) {
+        router.replace("/login?next=/create");
+        return;
+      }
+
+      setCheckingAuth(false);
+    });
+  }, [router]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -39,18 +49,25 @@ export default function CreatePage() {
       router.push(`/plan/${plan.id}`);
     } catch (err) {
       console.error(err);
+
+      if (err instanceof Error && err.message === "AUTH_REQUIRED") {
+        router.replace("/login?next=/create");
+        return;
+      }
+
       setError("Could not create plan.");
       setSubmitting(false);
     }
   }
 
+  if (checkingAuth) {
+    return <div className="py-16 text-neutral-600">Checking account...</div>;
+  }
+
   return (
     <section className="mx-auto max-w-2xl">
       <div>
-        <div className="text-sm text-neutral-500">
-          Create a new plan
-        </div>
-
+        <div className="text-sm text-neutral-500">Create a new plan</div>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">
           What do you want to do?
         </h1>
@@ -62,7 +79,6 @@ export default function CreatePage() {
       >
         <label className="block">
           <span className="text-sm font-medium">Title</span>
-
           <input
             required
             value={title}
@@ -73,66 +89,42 @@ export default function CreatePage() {
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium">
-            Category
-          </span>
-
+          <span className="text-sm font-medium">Category</span>
           <select
             value={category}
-            onChange={(e) =>
-              setCategory(e.target.value as PlanCategory)
-            }
+            onChange={(e) => setCategory(e.target.value as PlanCategory)}
             className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3"
           >
-            {[
-              "Study",
-              "Food",
-              "Sports",
-              "Event",
-              "Build",
-            ].map((item) => (
+            {["Study", "Food", "Sports", "Event", "Build"].map((item) => (
               <option key={item}>{item}</option>
             ))}
           </select>
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium">
-            Description
-          </span>
-
+          <span className="text-sm font-medium">Description</span>
           <textarea
             required
             value={description}
-            onChange={(e) =>
-              setDescription(e.target.value)
-            }
+            onChange={(e) => setDescription(e.target.value)}
             className="mt-2 min-h-32 w-full rounded-2xl border border-black/10 px-4 py-3"
           />
         </label>
 
         <div className="grid gap-4 md:grid-cols-2">
           <label>
-            <span className="text-sm font-medium">
-              Location
-            </span>
-
+            <span className="text-sm font-medium">Location</span>
             <input
               required
               value={location}
-              onChange={(e) =>
-                setLocation(e.target.value)
-              }
+              onChange={(e) => setLocation(e.target.value)}
               className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3"
               placeholder="Walter Library"
             />
           </label>
 
           <label>
-            <span className="text-sm font-medium">
-              Time
-            </span>
-
+            <span className="text-sm font-medium">Time</span>
             <input
               required
               value={time}
@@ -144,25 +136,18 @@ export default function CreatePage() {
         </div>
 
         <label className="block">
-          <span className="text-sm font-medium">
-            Maximum group size
-          </span>
-
+          <span className="text-sm font-medium">Maximum group size</span>
           <input
             type="number"
             min={2}
             max={12}
             value={maxPeople}
-            onChange={(e) =>
-              setMaxPeople(Number(e.target.value))
-            }
+            onChange={(e) => setMaxPeople(Number(e.target.value))}
             className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3"
           />
         </label>
 
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           disabled={submitting}
