@@ -22,12 +22,54 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [canResendConfirmation, setCanResendConfirmation] = useState(false);
+  const [resendingConfirmation, setResendingConfirmation] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) router.replace(getNextPath());
     });
   }, [router]);
+
+  async function resendSignupConfirmation() {
+    const targetEmail = email.trim();
+
+    if (!targetEmail) {
+      setError("Enter your email first.");
+      return;
+    }
+
+    setResendingConfirmation(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email: targetEmail,
+      });
+
+      if (resendError) {
+        if (resendError.code === "over_email_send_rate_limit") {
+          setError("Too many confirmation emails were requested. Please wait and try again.");
+          return;
+        }
+
+        setError(
+          "Could not resend the confirmation email. If you already confirmed this account, switch to Log in."
+        );
+        return;
+      }
+
+      setMessage(
+        "If this email has an unconfirmed account, a confirmation email has been sent. Check your inbox and spam folder."
+      );
+    } catch {
+      setError("Could not resend the confirmation email. Please try again.");
+    } finally {
+      setResendingConfirmation(false);
+    }
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -54,7 +96,21 @@ export default function LoginPage() {
           },
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          setCanResendConfirmation(true);
+
+          if (
+            signUpError.code === "user_already_exists" ||
+            signUpError.code === "email_exists"
+          ) {
+            setMessage(
+              "A sign-up may already be in progress for this email. Resend the confirmation email below, or switch to Log in if you already confirmed it."
+            );
+            return;
+          }
+
+          throw signUpError;
+        }
 
         if (data.session) {
           router.replace(next);
@@ -62,7 +118,10 @@ export default function LoginPage() {
           return;
         }
 
-        setMessage("Account created. Check your email to confirm your account.");
+        setCanResendConfirmation(true);
+        setMessage(
+          "Check your email for a confirmation link. If you already tried signing up or the email did not arrive, resend it below."
+        );
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -75,6 +134,10 @@ export default function LoginPage() {
         router.refresh();
       }
     } catch (err) {
+      if (mode === "signup") {
+        setCanResendConfirmation(true);
+      }
+
       setError(err instanceof Error ? err.message : "Authentication failed.");
     } finally {
       setSubmitting(false);
@@ -153,8 +216,21 @@ export default function LoginPage() {
           {error && <p className="text-sm text-red-600">{error}</p>}
           {message && <p className="text-sm text-green-700">{message}</p>}
 
+          {mode === "signup" && canResendConfirmation && (
+            <button
+              type="button"
+              onClick={resendSignupConfirmation}
+              disabled={submitting || resendingConfirmation}
+              className="w-full rounded-2xl border border-black/10 px-5 py-3 font-medium disabled:text-neutral-400"
+            >
+              {resendingConfirmation
+                ? "Sending confirmation email..."
+                : "Resend confirmation email"}
+            </button>
+          )}
+
           <button
-            disabled={submitting}
+            disabled={submitting || resendingConfirmation}
             className="w-full rounded-2xl bg-black px-5 py-3 font-medium text-white disabled:bg-neutral-400"
           >
             {submitting
