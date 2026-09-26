@@ -1,0 +1,2 @@
+import Link from "next/link";
+export function Nav(){return <nav className="border-b border-black/5 bg-white/80 backdrop-blur"><div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4"><Link href="/" className="text-lg font-semibold tracking-tight">Campus Project</Link><div className="flex items-center gap-5 text-sm text-neutral-700"><Link href="/discover">Discover</Link><Link href="/create">Create</Link><Link href="/group">My Group</Link></div></div></nav>}

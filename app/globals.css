@@ -1,0 +1,4 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body{background:radial-gradient(circle at top left,rgba(254,243,199,.45),transparent 28%),radial-gradient(circle at top right,rgba(219,234,254,.45),transparent 24%),#f7f7f5;color:#171717}*{box-sizing:border-box}button,input,select,textarea{font:inherit}

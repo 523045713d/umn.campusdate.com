@@ -1,0 +1,6 @@
+import type { Plan } from "@/types";
+export const seedPlans: Plan[]=[
+{id:"plan-101",creator:"Alex",title:"CSCI 4041 Dynamic Programming Review",category:"Study",description:"Review DP concepts and work through practice problems before the exam.",location:"Walter Library",startsAt:"Tonight · 7:00 PM",duration:"2 hours",maxPeople:5,currentMembers:3,matchScore:92,reasons:["Same course","Strong time overlap","Prefers small study groups"],members:["Alex","Sarah","Kevin"]},
+{id:"plan-102",creator:"Maya",title:"Pickup Basketball",category:"Sports",description:"Casual pickup basketball. Any skill level is welcome.",location:"RecWell",startsAt:"Saturday · 3:00 PM",duration:"90 minutes",maxPeople:8,currentMembers:5,matchScore:86,reasons:["Available at the same time","Sports interest overlap","Group size fits"],members:["Maya","Jordan","Leo","Emma","Chris"]},
+{id:"plan-103",creator:"Nina",title:"Hackathon Team — Need Frontend",category:"Build",description:"Looking for one or two people comfortable with React or UI work.",location:"Keller Hall",startsAt:"Friday · 6:30 PM",duration:"3 hours",maxPeople:4,currentMembers:2,matchScore:89,reasons:["Similar technical interests","Availability overlap","Complementary skill fit"],members:["Nina","Owen"]}
+];
