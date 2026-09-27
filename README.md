@@ -4,7 +4,7 @@ Activity-first campus matching prototype built with Next.js, TypeScript, Tailwin
 
 ## Current flow
 
-`Home → Discover/Create → Plan → Join request → Creator approval → My Groups → Group overview → AI plan / Group chat`
+`Home → Discover/Create → Plan → Join request → Creator approval → My Groups → Group overview → AI plan / Group chat → Notifications`
 
 ## Phase 1.1.3
 
@@ -104,3 +104,10 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - New activities require a future start date and time. Matching converts the activity timestamp into the student's saved time zone, checks the weekday and start-time period, and adds a visible availability reason and 25 points when it fits. Recommendations can now include an activity that matches on availability alone, and exclude activities whose scheduled start has passed.
 - Older activities retain their readable time text and are never assigned a guessed availability match. The period represents when an activity *starts*, not whether the whole activity fits the student's schedule.
 - Apply `supabase/migrations/007_availability_matching.sql` after `006_course_matching.sql` before deploying this branch; no external API key is needed.
+
+### 2026-09-26 (America/Chicago) — Notifications
+
+- Signed-in students receive in-app notifications when someone requests to join their plan, when their join request is approved or declined, and when another confirmed member sends a group chat message. Chat notifications include the sender and group name, without copying the message body.
+- The navigation bar shows an unread count. `/notifications` lists the latest 100 notifications, opens the related plan or group, and marks the opened notification as read. Realtime updates are used where available, with a 20-second refresh fallback.
+- Notifications are created by database triggers as part of the original request, review, or message transaction. Row-level security limits reads to the recipient; a checked database function marks only the signed-in recipient's notifications as read. Existing historical events are not backfilled.
+- Apply `supabase/migrations/008_notifications.sql` after `007_availability_matching.sql` before deploying this branch. This is an in-app inbox; it does not send email or push messages.
