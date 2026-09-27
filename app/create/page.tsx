@@ -12,6 +12,8 @@ export default function CreatePage() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<PlanCategory>("Study");
   const [description, setDescription] = useState("");
+  const [interests, setInterests] = useState("");
+  const [courses, setCourses] = useState("");
   const [location, setLocation] = useState("");
   const [time, setTime] = useState("");
   const [maxPeople, setMaxPeople] = useState(4);
@@ -37,12 +39,21 @@ export default function CreatePage() {
     setError("");
 
     try {
+      const start = new Date(time);
+      if (!Number.isFinite(start.getTime()) || start.getTime() <= Date.now()) {
+        setError("Choose a future start date and time.");
+        setSubmitting(false);
+        return;
+      }
       const plan = await createPlan({
         title,
         category,
         description,
+        interests: interests.split(",").map((value) => value.trim()).filter(Boolean).slice(0, 10),
+        courses: courses.split(",").map((value) => value.trim()).filter(Boolean).slice(0, 10),
         location,
-        startTime: time,
+        startTime: `${start.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} (${Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"})`,
+        startsAtIso: start.toISOString(),
         maxPeople,
       });
 
@@ -111,6 +122,18 @@ export default function CreatePage() {
           />
         </label>
 
+        <label className="block">
+          <span className="text-sm font-medium">Interest tags (comma separated)</span>
+          <input value={interests} onChange={(e) => setInterests(e.target.value)} maxLength={300} placeholder="Basketball, Photography" className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3" />
+          <span className="mt-1 block text-xs text-neutral-500">Add up to 10 interests so students with the same interests can find this plan.</span>
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium">Course codes (comma separated)</span>
+          <input value={courses} onChange={(e) => setCourses(e.target.value)} maxLength={300} placeholder="CSCI 4041, MATH 1271" className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3" />
+          <span className="mt-1 block text-xs text-neutral-500">Add up to 10 course codes so classmates can find this plan.</span>
+        </label>
+
         <div className="grid gap-4 md:grid-cols-2">
           <label>
             <span className="text-sm font-medium">Location</span>
@@ -124,13 +147,13 @@ export default function CreatePage() {
           </label>
 
           <label>
-            <span className="text-sm font-medium">Time</span>
+            <span className="text-sm font-medium">Start date and time</span>
             <input
               required
+              type="datetime-local"
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3"
-              placeholder="Tonight · 7 PM"
             />
           </label>
         </div>

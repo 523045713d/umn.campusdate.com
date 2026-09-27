@@ -7,12 +7,15 @@ export type Plan = {
   title: string;
   category: PlanCategory;
   description: string;
+  interests: string[];
+  courses: string[];
   location: string;
   startsAt: string;
+  startsAtIso: string | null;
   duration: string;
   maxPeople: number;
   currentMembers: number;
-  matchScore: number;
+  matchScore: number | null;
   reasons: string[];
   members: string[];
   memberIds: string[];

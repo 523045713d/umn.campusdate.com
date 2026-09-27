@@ -1,120 +1,62 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { loadMyGroups } from "@/lib/store";
 import type { Plan } from "@/types";
-import { loadPlans } from "@/lib/store";
 
-export default function GroupPage() {
+export default function GroupsPage() {
   const router = useRouter();
-  const [plan, setPlan] = useState<Plan | null>(null);
+  const [groups, setGroups] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchGroup() {
+    let active = true;
+    async function fetchGroups() {
       const user = await getCurrentUser();
-
+      if (!active) return;
       if (!user) {
         router.replace("/login?next=/group");
         return;
       }
-
-      const plans = await loadPlans();
-
-      setPlan(
-        plans.find((item) => item.memberIds.includes(user.id)) ?? null
-      );
-      setLoading(false);
+      try {
+        const result = await loadMyGroups();
+        if (active) setGroups(result);
+      } catch {
+        if (active) setError("Could not load your groups.");
+      } finally {
+        if (active) setLoading(false);
+      }
     }
-
-    fetchGroup();
+    fetchGroups();
+    return () => { active = false; };
   }, [router]);
 
-  if (loading) {
-    return <div>Loading group...</div>;
-  }
-
-  if (!plan) {
-    return (
-      <section className="mx-auto max-w-3xl">
-        <h1 className="text-4xl font-semibold tracking-tight">My Group</h1>
-        <div className="mt-8 rounded-3xl bg-white p-8 text-center text-neutral-500">
-          You have not joined a plan yet.
-        </div>
-      </section>
-    );
-  }
-
-  const schedule =
-    plan.category === "Study"
-      ? [
-          "Meet and set goals",
-          "Review key concepts",
-          "Work through problems",
-          "Compare solutions",
-          "Wrap up",
-        ]
-      : plan.category === "Build"
-      ? [
-          "Confirm roles",
-          "Define MVP",
-          "Build in parallel",
-          "Integrate",
-          "Demo review",
-        ]
-      : [
-          "Meet at the location",
-          "Quick introductions",
-          "Start activity",
-          "Optional break",
-          "Wrap up",
-        ];
-
   return (
-    <section className="mx-auto max-w-3xl">
-      <div className="text-sm text-neutral-500">Group overview</div>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight">
-        Your Group is Ready
-      </h1>
-
-      <div className="mt-8 rounded-[2rem] border border-black/5 bg-white p-7 shadow-sm">
-        <h2 className="text-2xl font-semibold">{plan.title}</h2>
-        <p className="mt-2 text-neutral-600">
-          {plan.location} · {plan.startsAt}
-        </p>
-
-        <div className="mt-7">
-          <h3 className="font-semibold">Members</h3>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {plan.members.map((member, index) => (
-              <span
-                key={`${member}-${index}`}
-                className="rounded-full bg-neutral-100 px-4 py-2 text-sm"
-              >
-                {member} ✓
-              </span>
-            ))}
-          </div>
+    <section className="mx-auto max-w-4xl">
+      <h1 className="text-4xl font-semibold tracking-tight">My Groups</h1>
+      <p className="mt-3 text-neutral-600">All plans you created or joined after approval.</p>
+      {loading && <p className="mt-8 text-neutral-500">Loading groups...</p>}
+      {error && <p className="mt-8 text-red-600">{error}</p>}
+      {!loading && !error && !groups.length && (
+        <div className="mt-8 rounded-3xl bg-white p-8 text-center">
+          <p className="text-neutral-500">You are not in a group yet.</p>
+          <Link href="/discover" className="mt-4 inline-block underline">Discover plans</Link>
         </div>
-
-        <div className="mt-7 rounded-3xl bg-neutral-50 p-6">
-          <div className="text-sm text-neutral-500">Suggested plan</div>
-          <h3 className="mt-1 text-xl font-semibold">
-            Make the first meeting easy
-          </h3>
-
-          <ol className="mt-5 space-y-3">
-            {schedule.map((step, index) => (
-              <li key={step} className="flex gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-xs text-white">
-                  {index + 1}
-                </span>
-                <span className="pt-1 text-neutral-700">{step}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
+      )}
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        {groups.map((group) => (
+          <Link key={group.id} href={`/group/${group.id}`} className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm hover:shadow-md">
+            <div className="text-sm text-neutral-500">{group.category}</div>
+            <h2 className="mt-2 text-xl font-semibold">{group.title}</h2>
+            <p className="mt-3 text-sm text-neutral-600">📍 {group.location} · 🕒 {group.startsAt}</p>
+            <p className="mt-3 text-sm text-neutral-600">👥 {group.currentMembers} / {group.maxPeople} members</p>
+            <span className="mt-5 inline-block text-sm font-medium underline">View group</span>
+          </Link>
+        ))}
       </div>
     </section>
   );
