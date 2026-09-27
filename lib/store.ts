@@ -17,6 +17,7 @@ type PlanRow = {
   category: PlanCategory;
   location: string;
   start_time: string;
+  starts_at: string | null;
   duration: string | null;
   max_people: number;
   status: string;
@@ -40,7 +41,8 @@ function mapPlan(row: PlanRow): Plan {
     interests: row.interests ?? [],
     courses: row.courses ?? [],
     location: row.location,
-    startsAt: row.start_time,
+    startsAt: row.starts_at ? new Date(row.starts_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : row.start_time,
+    startsAtIso: row.starts_at ?? null,
     duration: row.duration ?? "Flexible",
     maxPeople: row.max_people,
     currentMembers: memberships.length,
@@ -128,6 +130,7 @@ export async function createPlan(input: {
   courses: string[];
   location: string;
   startTime: string;
+  startsAtIso: string;
   maxPeople: number;
 }): Promise<Plan> {
   const user = await getCurrentUser();
@@ -151,6 +154,7 @@ export async function createPlan(input: {
       courses: input.courses,
       location: input.location,
       start_time: input.startTime,
+      starts_at: input.startsAtIso,
       duration: "Flexible",
       max_people: input.maxPeople,
     })

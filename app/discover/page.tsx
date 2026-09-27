@@ -32,7 +32,7 @@ export default function DiscoverPage() {
       try {
         const [profile, user] = await Promise.all([getCurrentProfile(), getCurrentUser()]);
         setUserId(user?.id ?? null);
-        setHasMatchingDetails(Boolean(profile?.courses?.length || profile?.interests?.length));
+        setHasMatchingDetails(Boolean(profile?.courses?.length || profile?.interests?.length || profile?.availability_slots?.length));
         setPlans(await loadPlans(profile));
       } catch {
         setError("Could not load plans.");
@@ -108,15 +108,15 @@ export default function DiscoverPage() {
           <h2 className="text-2xl font-semibold">Recommended for you</h2>
           {recommended.length ? (
             <>
-              <p className="mt-2 text-neutral-600">Open plans with courses or interests in common with your profile.</p>
+              <p className="mt-2 text-neutral-600">Open plans with shared courses, interests, or a start time that fits your weekly availability.</p>
               <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {recommended.map((plan) => <div key={plan.id}><PlanCard plan={plan} /><p className="mt-2 text-sm text-neutral-600">{plan.reasons.filter((reason) => reason.startsWith("Same course:") || reason.startsWith("Shared interest:")).join(" · ")}</p></div>)}
+                {recommended.map((plan) => <div key={plan.id}><PlanCard plan={plan} /><p className="mt-2 text-sm text-neutral-600">{plan.reasons.filter((reason) => reason.startsWith("Same course:") || reason.startsWith("Shared interest:") || reason.startsWith("Start time fits")).join(" · ")}</p></div>)}
               </div>
             </>
           ) : (
             <p className="mt-3 text-neutral-600">
               {!userId ? <><Link href="/login?next=/discover" className="underline">Log in</Link> to see recommendations.</>
-                : !hasMatchingDetails ? <><Link href="/profile" className="underline">Add courses or interests</Link> to your profile for recommendations.</>
+                : !hasMatchingDetails ? <><Link href="/profile" className="underline">Add courses, interests, or availability</Link> to your profile for recommendations.</>
                 : "No matching open plans yet. Browse all plans below."}
             </p>
           )}

@@ -12,6 +12,8 @@ export type Profile = {
   interests: string[] | null;
   courses: string[] | null;
   preferred_group_size: number | null;
+  availability_slots: string[] | null;
+  availability_timezone: string | null;
   avatar_url: string | null;
 };
 

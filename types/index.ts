@@ -11,6 +11,7 @@ export type Plan = {
   courses: string[];
   location: string;
   startsAt: string;
+  startsAtIso: string | null;
   duration: string;
   maxPeople: number;
   currentMembers: number;

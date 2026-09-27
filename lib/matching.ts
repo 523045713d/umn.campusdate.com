@@ -1,5 +1,6 @@
 import type { Profile } from "@/lib/auth";
 import type { Plan } from "@/types";
+import { availabilitySlot } from "@/lib/availability";
 
 export type MatchResult = { score: number; reasons: string[] } | null;
 
@@ -28,27 +29,33 @@ export function matchPlan(plan: Plan, profile: Profile | null): MatchResult {
   );
   const preference = profile.preferred_group_size;
   const hasPreference = typeof preference === "number" && preference >= 2;
-  if (!courses.length && !interests.length && !hasPreference) return null;
+  const slot = availabilitySlot(plan.startsAtIso, profile.availability_timezone);
+  const available = Boolean(slot && profile.availability_slots?.includes(slot) && plan.startsAtIso && Date.parse(plan.startsAtIso) > Date.now());
+  if (!courses.length && !interests.length && !hasPreference && !available) return null;
 
   let score = 0;
   const reasons: string[] = [];
   if ((profile.courses ?? []).length) {
     if (courses.length) {
-      score += 35;
+      score += 25;
       reasons.push(`Same course: ${[...new Set(courses)].slice(0, 3).join(", ")}`);
     }
   }
   if ((profile.interests ?? []).length) {
     if (interests.length) {
-      score += 50;
+      score += 40;
       reasons.push(`Shared interest: ${[...new Set(interests)].slice(0, 3).join(", ")}`);
     }
   }
   if (hasPreference) {
     if (plan.maxPeople <= preference!) {
-      score += 15;
+      score += 10;
       reasons.push("Group size fits your preference");
     }
+  }
+  if (available) {
+    score += 25;
+    reasons.push("Start time fits your weekly availability");
   }
   return { score, reasons };
 }

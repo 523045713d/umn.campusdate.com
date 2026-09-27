@@ -97,3 +97,10 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - Creators can add up to 10 course codes to a plan. Course labels appear on discovery cards and plan details; students can manage their own courses on the Profile page.
 - Matching compares course codes without case, spaces, or punctuation differences, so `CSCI 4041` and `csci-4041` match. The matching reason lists up to three shared courses; plans without course labels still match course names mentioned in the title, description, or category. Interest matching and recommendations continue to work.
 - Apply `supabase/migrations/006_course_matching.sql` after `005_interests_matching.sql` before deploying this branch. No external matching service or key is required.
+
+### 2026-09-26 (America/Chicago) — Availability matching
+
+- Students can select weekly availability on their Profile page in four six-hour periods for each weekday. Their time zone is recorded from the browser when availability is first saved, and saved settings continue to use that time zone.
+- New activities require a future start date and time. Matching converts the activity timestamp into the student's saved time zone, checks the weekday and start-time period, and adds a visible availability reason and 25 points when it fits. Recommendations can now include an activity that matches on availability alone, and exclude activities whose scheduled start has passed.
+- Older activities retain their readable time text and are never assigned a guessed availability match. The period represents when an activity *starts*, not whether the whole activity fits the student's schedule.
+- Apply `supabase/migrations/007_availability_matching.sql` after `006_course_matching.sql` before deploying this branch; no external API key is needed.

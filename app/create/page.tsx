@@ -39,6 +39,12 @@ export default function CreatePage() {
     setError("");
 
     try {
+      const start = new Date(time);
+      if (!Number.isFinite(start.getTime()) || start.getTime() <= Date.now()) {
+        setError("Choose a future start date and time.");
+        setSubmitting(false);
+        return;
+      }
       const plan = await createPlan({
         title,
         category,
@@ -46,7 +52,8 @@ export default function CreatePage() {
         interests: interests.split(",").map((value) => value.trim()).filter(Boolean).slice(0, 10),
         courses: courses.split(",").map((value) => value.trim()).filter(Boolean).slice(0, 10),
         location,
-        startTime: time,
+        startTime: `${start.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} (${Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"})`,
+        startsAtIso: start.toISOString(),
         maxPeople,
       });
 
@@ -140,13 +147,13 @@ export default function CreatePage() {
           </label>
 
           <label>
-            <span className="text-sm font-medium">Time</span>
+            <span className="text-sm font-medium">Start date and time</span>
             <input
               required
+              type="datetime-local"
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3"
-              placeholder="Tonight · 7 PM"
             />
           </label>
         </div>
