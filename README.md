@@ -59,3 +59,10 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - Discover shows up to three recommended open plans with a shared course or interest, ranked by match score. Plans already joined, created by the student, or full are excluded. Everyone can still browse all plans.
 - Without a signed-in profile or enough matching information, the UI gives a useful next step instead of inventing recommendations.
 - Matching runs in the client with the existing Supabase profile and plan data; no database migration is needed. This version does not compare schedules because availability is not collected yet.
+
+### 2026-09-26 (America/Chicago) — Join approval
+
+- Students request to join an open plan; a pending request does not make them a member.
+- The plan creator can approve or decline pending requests on the plan page. Approved students become members and can access their group. Declined students may request again.
+- Database functions check creator ownership and group capacity inside a transaction. Direct membership inserts from the client are disabled, including the earlier unrestricted join route.
+- Apply `supabase/migrations/002_join_approval.sql` after `001_auth.sql` and before deploying this branch. Existing confirmed members remain members; pending requests do not fill group slots.

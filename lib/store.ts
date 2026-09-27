@@ -130,14 +130,9 @@ export async function createPlan(input: {
     throw planError;
   }
 
-  const { error: memberError } = await supabase
-    .from("plan_members")
-    .insert({
-      plan_id: plan.id,
-      user_id: user.id,
-      member_name: memberName,
-      role: "creator",
-    });
+  const { error: memberError } = await supabase.rpc("add_creator_membership", {
+    p_plan_id: plan.id,
+  });
 
   if (memberError) {
     console.error("create creator membership:", memberError);
@@ -153,38 +148,31 @@ export async function createPlan(input: {
   return created;
 }
 
-export async function joinPlan(id: string): Promise<Plan | null> {
-  const user = await getCurrentUser();
+export type JoinRequest = {
+  id: string;
+  plan_id: string;
+  user_id: string;
+  requester_name: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+};
 
-  if (!user) {
-    throw new Error("AUTH_REQUIRED");
-  }
+export async function loadJoinRequests(planId: string): Promise<JoinRequest[]> {
+  const { data, error } = await supabase.from("join_requests").select("*")
+    .eq("plan_id", planId).order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as JoinRequest[];
+}
 
-  const current = await loadPlan(id);
-  if (!current) return null;
+export async function requestJoin(planId: string): Promise<void> {
+  const { error } = await supabase.rpc("request_join", { p_plan_id: planId });
+  if (error) throw error;
+}
 
-  if (current.memberIds.includes(user.id)) {
-    return current;
-  }
-
-  if (current.currentMembers >= current.maxPeople) {
-    return current;
-  }
-
-  const profile = await getCurrentProfile();
-  const memberName = profile?.name?.trim() || displayNameFromUser(user);
-
-  const { error } = await supabase.from("plan_members").insert({
-    plan_id: id,
-    user_id: user.id,
-    member_name: memberName,
-    role: "member",
+export async function reviewJoinRequest(requestId: string, approve: boolean): Promise<void> {
+  const { error } = await supabase.rpc("review_join_request", {
+    p_request_id: requestId,
+    p_approve: approve,
   });
-
-  if (error) {
-    console.error("joinPlan:", error);
-    throw error;
-  }
-
-  return loadPlan(id);
+  if (error) throw error;
 }
