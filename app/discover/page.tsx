@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { PlanCard } from "@/components/PlanCard";
 import { loadPlans } from "@/lib/store";
-import { getCurrentProfile } from "@/lib/auth";
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth";
+import { recommendPlans } from "@/lib/recommendations";
+import Link from "next/link";
 import type { Plan, PlanCategory } from "@/types";
 
 const categories: Array<"All" | PlanCategory> = [
@@ -17,6 +19,8 @@ const categories: Array<"All" | PlanCategory> = [
 
 export default function DiscoverPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [hasMatchingDetails, setHasMatchingDetails] = useState(false);
   const [category, setCategory] =
     useState<(typeof categories)[number]>("All");
 
@@ -26,7 +30,9 @@ export default function DiscoverPage() {
   useEffect(() => {
     async function fetchPlans() {
       try {
-        const profile = await getCurrentProfile();
+        const [profile, user] = await Promise.all([getCurrentProfile(), getCurrentUser()]);
+        setUserId(user?.id ?? null);
+        setHasMatchingDetails(Boolean(profile?.courses?.length || profile?.interests?.length));
         setPlans(await loadPlans(profile));
       } catch {
         setError("Could not load plans.");
@@ -37,6 +43,11 @@ export default function DiscoverPage() {
 
     fetchPlans();
   }, []);
+
+  const recommended = useMemo(
+    () => userId ? recommendPlans(plans, userId) : [],
+    [plans, userId]
+  );
 
   const filtered = useMemo(
     () =>
@@ -92,7 +103,28 @@ export default function DiscoverPage() {
         </div>
       )}
 
-      <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {!loading && !error && (
+        <section className="mt-10" aria-label="Recommended plans">
+          <h2 className="text-2xl font-semibold">Recommended for you</h2>
+          {recommended.length ? (
+            <>
+              <p className="mt-2 text-neutral-600">Open plans with courses or interests in common with your profile.</p>
+              <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {recommended.map((plan) => <div key={plan.id}><PlanCard plan={plan} /><p className="mt-2 text-sm text-neutral-600">{plan.reasons.filter((reason) => reason.startsWith("Same course:") || reason.startsWith("Shared interest:")).join(" · ")}</p></div>)}
+              </div>
+            </>
+          ) : (
+            <p className="mt-3 text-neutral-600">
+              {!userId ? <><Link href="/login?next=/discover" className="underline">Log in</Link> to see recommendations.</>
+                : !hasMatchingDetails ? <><Link href="/profile" className="underline">Add courses or interests</Link> to your profile for recommendations.</>
+                : "No matching open plans yet. Browse all plans below."}
+            </p>
+          )}
+        </section>
+      )}
+
+      <h2 className="mt-10 text-2xl font-semibold">Browse plans</h2>
+      <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((plan) => (
           <PlanCard key={plan.id} plan={plan} />
         ))}

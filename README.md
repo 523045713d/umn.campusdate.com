@@ -50,3 +50,12 @@ The migration creates the auth profile trigger, changes RLS so anonymous users c
 ## Deployment flow
 
 Feature branches deploy as Vercel Preview deployments. Merge to `main` only after Preview testing passes; `main` remains the Production branch.
+
+## Update log
+
+### 2026-09-26 (America/Chicago) — Matching and recommendations
+
+- Matching scores now use the signed-in student's courses, interests, and preferred group size instead of fixed mock scores. Profile settings can save courses and interests.
+- Discover shows up to three recommended open plans with a shared course or interest, ranked by match score. Plans already joined, created by the student, or full are excluded. Everyone can still browse all plans.
+- Without a signed-in profile or enough matching information, the UI gives a useful next step instead of inventing recommendations.
+- Matching runs in the client with the existing Supabase profile and plan data; no database migration is needed. This version does not compare schedules because availability is not collected yet.
