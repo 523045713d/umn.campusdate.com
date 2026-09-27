@@ -12,7 +12,7 @@ export type Plan = {
   duration: string;
   maxPeople: number;
   currentMembers: number;
-  matchScore: number;
+  matchScore: number | null;
   reasons: string[];
   members: string[];
   memberIds: string[];
