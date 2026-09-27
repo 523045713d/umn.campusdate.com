@@ -36,7 +36,7 @@ export function Nav() {
         <div className="flex items-center gap-5 text-sm text-neutral-700">
           <Link href="/discover">Discover</Link>
           <Link href="/create">Create</Link>
-          <Link href="/group">My Group</Link>
+          <Link href="/group">My Groups</Link>
 
           {user ? (
             <>

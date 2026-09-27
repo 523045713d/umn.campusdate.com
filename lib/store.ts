@@ -72,6 +72,30 @@ export async function loadPlans(profile: Profile | null = null): Promise<Plan[]>
   return (data ?? []).map((row) => withMatch(mapPlan(row as PlanRow), profile));
 }
 
+export async function loadMyGroups(): Promise<Plan[]> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("AUTH_REQUIRED");
+
+  const { data: memberships, error: membershipError } = await supabase
+    .from("plan_members")
+    .select("plan_id")
+    .eq("user_id", user.id)
+    .eq("status", "confirmed");
+  if (membershipError) throw membershipError;
+
+  const ids = [...new Set((memberships ?? []).map((member) => member.plan_id as string))];
+  if (!ids.length) return [];
+
+  const { data, error } = await supabase
+    .from("plans")
+    .select(planSelect)
+    .in("id", ids)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  return (data ?? []).map((row) => mapPlan(row as PlanRow));
+}
+
 function withMatch(plan: Plan, profile: Profile | null): Plan {
   const match = matchPlan(plan, profile);
   return { ...plan, matchScore: match?.score ?? null, reasons: match?.reasons ?? [] };

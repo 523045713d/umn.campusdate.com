@@ -192,7 +192,7 @@ export default function PlanDetail() {
             </button>
           )}
           {ownRequest?.status === "rejected" && !joined && <p className="self-center text-sm text-neutral-600">Your previous request was declined.</p>}
-          {(joined || isCreator) && <Link href="/group" className="rounded-2xl border border-black/10 px-5 py-3 font-medium">View Group</Link>}
+          {(joined || isCreator) && <Link href={`/group/${plan.id}`} className="rounded-2xl border border-black/10 px-5 py-3 font-medium">View Group</Link>}
         </div>
       </div>
     </section>

@@ -4,7 +4,7 @@ Activity-first campus matching prototype built with Next.js, TypeScript, Tailwin
 
 ## Current flow
 
-`Home → Discover/Create → Plan → Join → Group`
+`Home → Discover/Create → Plan → Join request → Creator approval → My Groups → Group overview`
 
 ## Phase 1.1.3
 
@@ -66,3 +66,9 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - The plan creator can approve or decline pending requests on the plan page. Approved students become members and can access their group. Declined students may request again.
 - Database functions check creator ownership and group capacity inside a transaction. Direct membership inserts from the client are disabled, including the earlier unrestricted join route.
 - Apply `supabase/migrations/002_join_approval.sql` after `001_auth.sql` and before deploying this branch. Existing confirmed members remain members; pending requests do not fill group slots.
+
+### 2026-09-26 (America/Chicago) — Multiple groups
+
+- My Groups now lists every plan where the signed-in student is a confirmed member, including plans they created. Each group has its own `/group/[id]` overview and direct link from the plan page.
+- Group lists include plans regardless of open/closed status. Pending join requests do not appear until approved.
+- Group membership is checked against the current user's confirmed `plan_members` records on every visit. No new database migration is required beyond the join approval migration.
