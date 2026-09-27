@@ -200,3 +200,30 @@ export async function reviewJoinRequest(requestId: string, approve: boolean): Pr
   });
   if (error) throw error;
 }
+
+export type GroupMessage = {
+  id: string;
+  plan_id: string;
+  sender_id: string;
+  sender_name: string;
+  body: string;
+  created_at: string;
+};
+
+export async function loadGroupMessages(planId: string): Promise<GroupMessage[]> {
+  const { data, error } = await supabase.from("group_messages")
+    .select("id,plan_id,sender_id,sender_name,body,created_at")
+    .eq("plan_id", planId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (error) throw error;
+  return ((data ?? []) as GroupMessage[]).reverse();
+}
+
+export async function sendGroupMessage(planId: string, body: string): Promise<void> {
+  const { error } = await supabase.rpc("send_group_message", {
+    p_plan_id: planId,
+    p_body: body,
+  });
+  if (error) throw error;
+}

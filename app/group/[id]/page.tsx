@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { loadMyGroups } from "@/lib/store";
+import { GroupChat } from "@/components/GroupChat";
 import type { Plan } from "@/types";
 
 export default function GroupDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const [group, setGroup] = useState<Plan | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -25,7 +27,10 @@ export default function GroupDetailPage() {
       }
       try {
         const groups = await loadMyGroups();
-        if (active) setGroup(groups.find((item) => item.id === params.id) ?? null);
+        if (active) {
+          setGroup(groups.find((item) => item.id === params.id) ?? null);
+          setUserId(user.id);
+        }
       } catch {
         if (active) setError("Could not load this group.");
       } finally {
@@ -73,6 +78,7 @@ export default function GroupDetailPage() {
           </ol>
         </div>
       </div>
+      {userId && <GroupChat planId={group.id} userId={userId} />}
     </section>
   );
 }

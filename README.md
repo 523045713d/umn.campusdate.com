@@ -4,7 +4,7 @@ Activity-first campus matching prototype built with Next.js, TypeScript, Tailwin
 
 ## Current flow
 
-`Home → Discover/Create → Plan → Join request → Creator approval → My Groups → Group overview`
+`Home → Discover/Create → Plan → Join request → Creator approval → My Groups → Group overview → Group chat`
 
 ## Phase 1.1.3
 
@@ -72,3 +72,9 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - My Groups now lists every plan where the signed-in student is a confirmed member, including plans they created. Each group has its own `/group/[id]` overview and direct link from the plan page.
 - Group lists include plans regardless of open/closed status. Pending join requests do not appear until approved.
 - Group membership is checked against the current user's confirmed `plan_members` records on every visit. No new database migration is required beyond the join approval migration.
+
+### 2026-09-26 (America/Chicago) — Group chat
+
+- Every group overview now has a separate chat. Confirmed members can read the latest 100 messages and send messages up to 2,000 characters; pending applicants cannot access it.
+- Messages are stored in Supabase and update via Realtime when available, with a 15-second refresh fallback. Sender names come from confirmed membership records rather than client-supplied text.
+- Apply `supabase/migrations/003_group_chat.sql` after `002_join_approval.sql` before deploying this branch. The migration adds member-only read access, a checked send function, and Realtime publication when available.
