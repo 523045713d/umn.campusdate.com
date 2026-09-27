@@ -59,7 +59,7 @@ export function AiPlanner({ group, userId }: { group: Plan; userId: string }) {
         <div className="mt-3">
           <p className="text-sm text-neutral-600">{isCreator ? "Generate an agenda and preparation checklist for this group." : "The creator has not generated a plan yet."}</p>
           {isCreator && <>
-            <p className="mt-2 text-xs text-neutral-500">Generation sends this activity’s title, description, time, location, and group size to OpenAI. Chat messages and member names are excluded.</p>
+            <p className="mt-2 text-xs text-neutral-500">Generation sends this activity’s title, description, time, location, and group size to Google Gemini. Chat messages and member names are excluded. Google may use data submitted on the Gemini API free tier to improve its products.</p>
             <button onClick={generate} disabled={generating} className="mt-4 rounded-xl bg-black px-5 py-3 text-sm text-white disabled:bg-neutral-300">{generating ? "Planning..." : "Generate plan"}</button>
           </>}
         </div>
