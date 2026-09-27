@@ -26,6 +26,10 @@ Create `.env.local`:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+
+# Server-only AI planning key. Never use a NEXT_PUBLIC_ prefix.
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
 Then:
@@ -79,12 +83,11 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - Messages are stored in Supabase and update via Realtime when available, with a 15-second refresh fallback. Sender names come from confirmed membership records rather than client-supplied text.
 - Apply `supabase/migrations/003_group_chat.sql` after `002_join_approval.sql` before deploying this branch. The migration adds member-only read access, a checked send function, and Realtime publication when available.
 
-
 ### 2026-09-26 (America/Chicago) — AI planning
 
 - A group creator can generate one shared activity plan with preparation items, a timed agenda, and a backup plan. Confirmed group members can view the saved plan in their group overview.
-- Generation uses the OpenAI Responses API with structured output. Only the activity title, description, category, time, location, duration, and group size are sent; chat messages and member names are excluded. The API key stays on the server.
-- Set server-side `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`, default `gpt-5-mini`) in deployment settings. Apply `supabase/migrations/004_ai_planning.sql` after `003_group_chat.sql` before deploying this branch. No plan can be generated until both are configured.
+- Generation uses the Gemini API with structured JSON output. Only the activity title, description, category, time, location, duration, and group size are sent; chat messages and member names are excluded. The API key stays on the server.
+- Set server-side `GEMINI_API_KEY` and optionally `GEMINI_MODEL` (default `gemini-3.5-flash-lite`) in deployment settings. The free tier may use submitted data to improve Google's products. Apply `supabase/migrations/004_ai_planning.sql` after `003_group_chat.sql` before deploying this branch. No plan can be generated until both are configured.
 
 ### 2026-09-26 (America/Chicago) — Interests matching
 
