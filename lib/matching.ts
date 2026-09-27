@@ -3,7 +3,7 @@ import type { Plan } from "@/types";
 
 export type MatchResult = { score: number; reasons: string[] } | null;
 
-const normalize = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, " ").trim();
+const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 const tokens = (value: string) => normalize(value).split(/\s+/).filter(Boolean);
 
 function mentions(text: string, term: string): boolean {
@@ -18,7 +18,10 @@ export function matchPlan(plan: Plan, profile: Profile | null): MatchResult {
   if (!profile) return null;
   const text = `${plan.title} ${plan.description} ${plan.category}`;
   const courses = (profile.courses ?? []).filter((course) => mentions(text, course));
-  const interests = (profile.interests ?? []).filter((interest) => mentions(text, interest));
+  const taggedInterests = new Set(plan.interests.map(normalize).filter(Boolean));
+  const interests = (profile.interests ?? []).filter((interest) =>
+    taggedInterests.has(normalize(interest)) || (!taggedInterests.size && mentions(text, interest))
+  );
   const preference = profile.preferred_group_size;
   const hasPreference = typeof preference === "number" && preference >= 2;
   if (!courses.length && !interests.length && !hasPreference) return null;
@@ -27,14 +30,14 @@ export function matchPlan(plan: Plan, profile: Profile | null): MatchResult {
   const reasons: string[] = [];
   if ((profile.courses ?? []).length) {
     if (courses.length) {
-      score += 50;
+      score += 35;
       reasons.push(`Same course: ${courses[0]}`);
     }
   }
   if ((profile.interests ?? []).length) {
     if (interests.length) {
-      score += 35;
-      reasons.push(`Shared interest: ${interests[0]}`);
+      score += 50;
+      reasons.push(`Shared interest: ${[...new Set(interests)].slice(0, 3).join(", ")}`);
     }
   }
   if (hasPreference) {

@@ -119,6 +119,10 @@ export default function PlanDetail() {
           )}
         </div>
 
+        {plan.interests.length > 0 && <div className="mt-5 flex flex-wrap gap-2" aria-label="Plan interests">
+          {plan.interests.map((interest) => <span key={interest} className="rounded-full bg-neutral-100 px-3 py-1 text-sm">{interest}</span>)}
+        </div>}
+
         <div className="mt-7 grid gap-3 rounded-2xl bg-neutral-50 p-5 text-sm text-neutral-700 md:grid-cols-3">
           <div>📍 {plan.location}</div>
           <div>🕒 {plan.startsAt}</div>

@@ -7,6 +7,7 @@ export type Plan = {
   title: string;
   category: PlanCategory;
   description: string;
+  interests: string[];
   location: string;
   startsAt: string;
   duration: string;

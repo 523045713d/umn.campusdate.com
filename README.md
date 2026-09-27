@@ -85,3 +85,9 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - A group creator can generate one shared activity plan with preparation items, a timed agenda, and a backup plan. Confirmed group members can view the saved plan in their group overview.
 - Generation uses the OpenAI Responses API with structured output. Only the activity title, description, category, time, location, duration, and group size are sent; chat messages and member names are excluded. The API key stays on the server.
 - Set server-side `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`, default `gpt-5-mini`) in deployment settings. Apply `supabase/migrations/004_ai_planning.sql` after `003_group_chat.sql` before deploying this branch. No plan can be generated until both are configured.
+
+### 2026-09-26 (America/Chicago) — Interests matching
+
+- Creators can add up to 10 comma-separated interest tags when publishing a plan. Tags appear on discovery cards and plan details.
+- Matching compares a student's saved profile interests to plan tags without case sensitivity or punctuation differences, including non-English interests. Shared interests appear as matching reasons and receive a higher score than course overlap. Existing plans without tags continue to match interests mentioned in their title, description, or category.
+- Apply `supabase/migrations/005_interests_matching.sql` after `004_ai_planning.sql` before deploying this branch. Students can set or update their interests on the Profile page; no AI service is needed for interest matching.

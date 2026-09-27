@@ -12,6 +12,7 @@ export default function CreatePage() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<PlanCategory>("Study");
   const [description, setDescription] = useState("");
+  const [interests, setInterests] = useState("");
   const [location, setLocation] = useState("");
   const [time, setTime] = useState("");
   const [maxPeople, setMaxPeople] = useState(4);
@@ -41,6 +42,7 @@ export default function CreatePage() {
         title,
         category,
         description,
+        interests: interests.split(",").map((value) => value.trim()).filter(Boolean).slice(0, 10),
         location,
         startTime: time,
         maxPeople,
@@ -109,6 +111,12 @@ export default function CreatePage() {
             onChange={(e) => setDescription(e.target.value)}
             className="mt-2 min-h-32 w-full rounded-2xl border border-black/10 px-4 py-3"
           />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium">Interest tags (comma separated)</span>
+          <input value={interests} onChange={(e) => setInterests(e.target.value)} maxLength={300} placeholder="Basketball, Photography" className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3" />
+          <span className="mt-1 block text-xs text-neutral-500">Add up to 10 interests so students with the same interests can find this plan.</span>
         </label>
 
         <div className="grid gap-4 md:grid-cols-2">
