@@ -2,6 +2,8 @@
 
 import { displayNameFromUser, getCurrentProfile, getCurrentUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import { matchPlan } from "@/lib/matching";
+import type { Profile } from "@/lib/auth";
 import type { Plan, PlanCategory } from "@/types";
 
 type PlanRow = {
@@ -38,12 +40,8 @@ function mapPlan(row: PlanRow): Plan {
     duration: row.duration ?? "Flexible",
     maxPeople: row.max_people,
     currentMembers: memberships.length,
-    matchScore: 88,
-    reasons: [
-      "Availability overlap",
-      "Shared activity interest",
-      "Compatible group size",
-    ],
+    matchScore: null,
+    reasons: [],
     members: memberships.map((member) => member.member_name),
     memberIds: memberships
       .map((member) => member.user_id)
@@ -59,7 +57,7 @@ const planSelect = `
   )
 `;
 
-export async function loadPlans(): Promise<Plan[]> {
+export async function loadPlans(profile: Profile | null = null): Promise<Plan[]> {
   const { data, error } = await supabase
     .from("plans")
     .select(planSelect)
@@ -71,10 +69,15 @@ export async function loadPlans(): Promise<Plan[]> {
     throw error;
   }
 
-  return (data ?? []).map((row) => mapPlan(row as PlanRow));
+  return (data ?? []).map((row) => withMatch(mapPlan(row as PlanRow), profile));
 }
 
-export async function loadPlan(id: string): Promise<Plan | null> {
+function withMatch(plan: Plan, profile: Profile | null): Plan {
+  const match = matchPlan(plan, profile);
+  return { ...plan, matchScore: match?.score ?? null, reasons: match?.reasons ?? [] };
+}
+
+export async function loadPlan(id: string, profile: Profile | null = null): Promise<Plan | null> {
   const { data, error } = await supabase
     .from("plans")
     .select(planSelect)
@@ -86,7 +89,7 @@ export async function loadPlan(id: string): Promise<Plan | null> {
     return null;
   }
 
-  return mapPlan(data as PlanRow);
+  return withMatch(mapPlan(data as PlanRow), profile);
 }
 
 export async function createPlan(input: {
