@@ -4,6 +4,7 @@ import type { Plan } from "@/types";
 export type MatchResult = { score: number; reasons: string[] } | null;
 
 const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+const normalizeCourse = (value: string) => normalize(value).replace(/\s+/g, "");
 const tokens = (value: string) => normalize(value).split(/\s+/).filter(Boolean);
 
 function mentions(text: string, term: string): boolean {
@@ -17,7 +18,10 @@ function mentions(text: string, term: string): boolean {
 export function matchPlan(plan: Plan, profile: Profile | null): MatchResult {
   if (!profile) return null;
   const text = `${plan.title} ${plan.description} ${plan.category}`;
-  const courses = (profile.courses ?? []).filter((course) => mentions(text, course));
+  const taggedCourses = new Set(plan.courses.map(normalizeCourse).filter(Boolean));
+  const courses = (profile.courses ?? []).filter((course) =>
+    taggedCourses.has(normalizeCourse(course)) || (!taggedCourses.size && mentions(text, course))
+  );
   const taggedInterests = new Set(plan.interests.map(normalize).filter(Boolean));
   const interests = (profile.interests ?? []).filter((interest) =>
     taggedInterests.has(normalize(interest)) || (!taggedInterests.size && mentions(text, interest))
@@ -31,7 +35,7 @@ export function matchPlan(plan: Plan, profile: Profile | null): MatchResult {
   if ((profile.courses ?? []).length) {
     if (courses.length) {
       score += 35;
-      reasons.push(`Same course: ${courses[0]}`);
+      reasons.push(`Same course: ${[...new Set(courses)].slice(0, 3).join(", ")}`);
     }
   }
   if ((profile.interests ?? []).length) {

@@ -119,7 +119,8 @@ export default function PlanDetail() {
           )}
         </div>
 
-        {plan.interests.length > 0 && <div className="mt-5 flex flex-wrap gap-2" aria-label="Plan interests">
+        {(plan.interests.length > 0 || plan.courses.length > 0) && <div className="mt-5 flex flex-wrap gap-2" aria-label="Plan tags">
+          {plan.courses.map((course) => <span key={course} className="rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-800">{course}</span>)}
           {plan.interests.map((interest) => <span key={interest} className="rounded-full bg-neutral-100 px-3 py-1 text-sm">{interest}</span>)}
         </div>}
 

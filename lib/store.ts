@@ -13,6 +13,7 @@ type PlanRow = {
   title: string;
   description: string;
   interests: string[] | null;
+  courses: string[] | null;
   category: PlanCategory;
   location: string;
   start_time: string;
@@ -37,6 +38,7 @@ function mapPlan(row: PlanRow): Plan {
     category: row.category,
     description: row.description,
     interests: row.interests ?? [],
+    courses: row.courses ?? [],
     location: row.location,
     startsAt: row.start_time,
     duration: row.duration ?? "Flexible",
@@ -123,6 +125,7 @@ export async function createPlan(input: {
   category: PlanCategory;
   description: string;
   interests: string[];
+  courses: string[];
   location: string;
   startTime: string;
   maxPeople: number;
@@ -145,6 +148,7 @@ export async function createPlan(input: {
       category: input.category,
       description: input.description,
       interests: input.interests,
+      courses: input.courses,
       location: input.location,
       start_time: input.startTime,
       duration: "Flexible",

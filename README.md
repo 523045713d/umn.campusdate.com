@@ -91,3 +91,9 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - Creators can add up to 10 comma-separated interest tags when publishing a plan. Tags appear on discovery cards and plan details.
 - Matching compares a student's saved profile interests to plan tags without case sensitivity or punctuation differences, including non-English interests. Shared interests appear as matching reasons and receive a higher score than course overlap. Existing plans without tags continue to match interests mentioned in their title, description, or category.
 - Apply `supabase/migrations/005_interests_matching.sql` after `004_ai_planning.sql` before deploying this branch. Students can set or update their interests on the Profile page; no AI service is needed for interest matching.
+
+### 2026-09-26 (America/Chicago) — Course matching
+
+- Creators can add up to 10 course codes to a plan. Course labels appear on discovery cards and plan details; students can manage their own courses on the Profile page.
+- Matching compares course codes without case, spaces, or punctuation differences, so `CSCI 4041` and `csci-4041` match. The matching reason lists up to three shared courses; plans without course labels still match course names mentioned in the title, description, or category. Interest matching and recommendations continue to work.
+- Apply `supabase/migrations/006_course_matching.sql` after `005_interests_matching.sql` before deploying this branch. No external matching service or key is required.
