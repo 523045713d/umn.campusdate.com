@@ -227,3 +227,10 @@ export async function sendGroupMessage(planId: string, body: string): Promise<vo
   });
   if (error) throw error;
 }
+
+export async function loadGroupAiPlan(planId: string): Promise<unknown> {
+  const { data, error } = await supabase.from("groups")
+    .select("ai_plan").eq("plan_id", planId).maybeSingle();
+  if (error) throw error;
+  return data?.ai_plan ?? null;
+}

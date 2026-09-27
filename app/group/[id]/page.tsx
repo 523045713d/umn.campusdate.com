@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { loadMyGroups } from "@/lib/store";
 import { GroupChat } from "@/components/GroupChat";
+import { AiPlanner } from "@/components/AiPlanner";
 import type { Plan } from "@/types";
 
 export default function GroupDetailPage() {
@@ -44,12 +45,6 @@ export default function GroupDetailPage() {
   if (loading) return <p className="py-16 text-neutral-500">Loading group...</p>;
   if (error || !group) return <section className="mx-auto max-w-3xl py-16"><p>{error || "This group is not in your groups."}</p><Link href="/group" className="mt-4 inline-block underline">← My Groups</Link></section>;
 
-  const schedule = group.category === "Study"
-    ? ["Meet and set goals", "Review key concepts", "Work through problems", "Compare solutions", "Wrap up"]
-    : group.category === "Build"
-    ? ["Confirm roles", "Define MVP", "Build in parallel", "Integrate", "Demo review"]
-    : ["Meet at the location", "Quick introductions", "Start activity", "Optional break", "Wrap up"];
-
   return (
     <section className="mx-auto max-w-3xl">
       <Link href="/group" className="text-sm text-neutral-500">← All my groups</Link>
@@ -65,18 +60,7 @@ export default function GroupDetailPage() {
             ))}
           </div>
         </div>
-        <div className="mt-7 rounded-3xl bg-neutral-50 p-6">
-          <div className="text-sm text-neutral-500">Suggested plan</div>
-          <h2 className="mt-1 text-xl font-semibold">Make the first meeting easy</h2>
-          <ol className="mt-5 space-y-3">
-            {schedule.map((step, index) => (
-              <li key={step} className="flex gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-xs text-white">{index + 1}</span>
-                <span className="pt-1 text-neutral-700">{step}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
+        {userId && <AiPlanner group={group} userId={userId} />}
       </div>
       {userId && <GroupChat planId={group.id} userId={userId} />}
     </section>
