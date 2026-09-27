@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getCurrentProfile } from "@/lib/auth";
 import type { Plan } from "@/types";
 import { joinPlan, loadPlan } from "@/lib/store";
 
@@ -19,10 +19,8 @@ export default function PlanDetail() {
 
   useEffect(() => {
     async function fetchPlan() {
-      const [result, user] = await Promise.all([
-        loadPlan(params.id),
-        getCurrentUser(),
-      ]);
+      const [profile, user] = await Promise.all([getCurrentProfile(), getCurrentUser()]);
+      const result = await loadPlan(params.id, profile);
 
       setPlan(result);
       setCurrentUserId(user?.id ?? null);
@@ -43,7 +41,7 @@ export default function PlanDetail() {
 
     try {
       const updated = await joinPlan(params.id);
-      setPlan(updated);
+      setPlan(updated ? await loadPlan(params.id, await getCurrentProfile()) : null);
     } catch (err) {
       console.error(err);
 
@@ -90,9 +88,11 @@ export default function PlanDetail() {
             </p>
           </div>
 
-          <div className="h-fit rounded-full bg-neutral-100 px-4 py-2 text-sm font-semibold">
-            {plan.matchScore}% match
-          </div>
+          {plan.matchScore !== null && (
+            <div className="h-fit rounded-full bg-neutral-100 px-4 py-2 text-sm font-semibold">
+              {plan.matchScore}% match
+            </div>
+          )}
         </div>
 
         <div className="mt-7 grid gap-3 rounded-2xl bg-neutral-50 p-5 text-sm text-neutral-700 md:grid-cols-3">
@@ -103,7 +103,7 @@ export default function PlanDetail() {
           </div>
         </div>
 
-        <div className="mt-7">
+        {plan.matchScore !== null && <div className="mt-7">
           <h2 className="font-semibold">Why this matches you</h2>
           <div className="mt-3 grid gap-2">
             {plan.reasons.map((reason) => (
@@ -115,7 +115,7 @@ export default function PlanDetail() {
               </div>
             ))}
           </div>
-        </div>
+        </div>}
 
         <div className="mt-7">
           <h2 className="font-semibold">Current group</h2>

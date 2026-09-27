@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { PlanCard } from "@/components/PlanCard";
 import { loadPlans } from "@/lib/store";
+import { getCurrentProfile } from "@/lib/auth";
 import type { Plan, PlanCategory } from "@/types";
 
 const categories: Array<"All" | PlanCategory> = [
@@ -25,7 +26,8 @@ export default function DiscoverPage() {
   useEffect(() => {
     async function fetchPlans() {
       try {
-        setPlans(await loadPlans());
+        const profile = await getCurrentProfile();
+        setPlans(await loadPlans(profile));
       } catch {
         setError("Could not load plans.");
       } finally {

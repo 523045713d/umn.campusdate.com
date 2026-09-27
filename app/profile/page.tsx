@@ -14,6 +14,8 @@ export default function ProfilePage() {
   const [major, setMajor] = useState("");
   const [year, setYear] = useState("");
   const [groupSize, setGroupSize] = useState(4);
+  const [courses, setCourses] = useState("");
+  const [interests, setInterests] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -32,6 +34,8 @@ export default function ProfilePage() {
       setMajor(profile?.major ?? "");
       setYear(profile?.year ?? "");
       setGroupSize(profile?.preferred_group_size ?? 4);
+      setCourses((profile?.courses ?? []).join(", "));
+      setInterests((profile?.interests ?? []).join(", "));
       setLoading(false);
     }
 
@@ -58,6 +62,8 @@ export default function ProfilePage() {
         major: major.trim() || null,
         year: year.trim() || null,
         preferred_group_size: groupSize,
+        courses: courses.split(",").map((value) => value.trim()).filter(Boolean),
+        interests: interests.split(",").map((value) => value.trim()).filter(Boolean),
       })
       .eq("id", user.id);
 
@@ -127,6 +133,14 @@ export default function ProfilePage() {
           </label>
         </div>
 
+        <label className="block">
+          <span className="text-sm font-medium">Courses (comma separated)</span>
+          <input value={courses} onChange={(e) => setCourses(e.target.value)} placeholder="CSCI 4041, MATH 1271" className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3" />
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium">Interests (comma separated)</span>
+          <input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="Basketball, React" className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3" />
+        </label>
         <label className="block">
           <span className="text-sm font-medium">Preferred group size</span>
           <input
