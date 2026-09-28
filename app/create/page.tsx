@@ -4,7 +4,14 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createPlan } from "@/lib/store";
-import type { PlanCategory } from "@/types";
+import { loadExternalEvent } from "@/lib/external-events";
+import type { ExternalEvent, PlanCategory } from "@/types";
+
+function dateTimeInputValue(iso: string): string {
+  const date = new Date(iso);
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localDate.toISOString().slice(0, 16);
+}
 
 export default function CreatePage() {
   const router = useRouter();
@@ -17,19 +24,59 @@ export default function CreatePage() {
   const [location, setLocation] = useState("");
   const [time, setTime] = useState("");
   const [maxPeople, setMaxPeople] = useState(4);
+  const [sourceEvent, setSourceEvent] = useState<ExternalEvent | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    getCurrentUser().then((user) => {
+    let active = true;
+
+    async function initialize() {
+      const eventId = new URLSearchParams(window.location.search).get("event");
+      const nextPath = eventId ? `/create?event=${encodeURIComponent(eventId)}` : "/create";
+      const user = await getCurrentUser();
+
       if (!user) {
-        router.replace("/login?next=/create");
+        router.replace(`/login?next=${encodeURIComponent(nextPath)}`);
         return;
       }
 
-      setCheckingAuth(false);
-    });
+      if (eventId) {
+        try {
+          const event = await loadExternalEvent(eventId);
+          if (!active) return;
+
+          if (
+            !event
+            || event.status !== "active"
+            || new Date(event.expiresAtIso).getTime() <= Date.now()
+          ) {
+            setError("This UMN event is no longer available for a new plan.");
+          } else {
+            setSourceEvent(event);
+            setTitle(`Go to ${event.title}`);
+            setCategory("Event");
+            setDescription(`Looking for people to attend ${event.title} together.`);
+            setInterests(event.tags.filter((tag) => !tag.includes(",")).slice(0, 10).join(", "));
+            setLocation(event.location);
+            const eventStart = new Date(event.startsAtIso);
+            const suggestedStart = eventStart.getTime() > Date.now()
+              ? eventStart
+              : new Date(Date.now() + 15 * 60_000);
+            setTime(dateTimeInputValue(suggestedStart.toISOString()));
+          }
+        } catch (loadError) {
+          console.error(loadError);
+          if (active) setError("Could not load the selected UMN event.");
+        }
+      }
+
+      if (active) setCheckingAuth(false);
+    }
+
+    void initialize();
+    return () => { active = false; };
   }, [router]);
 
   async function submit(e: FormEvent) {
@@ -55,6 +102,7 @@ export default function CreatePage() {
         startTime: `${start.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} (${Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"})`,
         startsAtIso: start.toISOString(),
         maxPeople,
+        externalEventId: sourceEvent?.id ?? null,
       });
 
       router.push(`/plan/${plan.id}`);
@@ -78,11 +126,25 @@ export default function CreatePage() {
   return (
     <section className="mx-auto max-w-2xl">
       <div>
-        <div className="text-sm text-neutral-500">Create a new plan</div>
+        <div className="text-sm text-neutral-500">
+          {sourceEvent ? "Create a crew for a UMN calendar event" : "Create a new plan"}
+        </div>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">
           What do you want to do?
         </h1>
       </div>
+
+      {sourceEvent && (
+        <div className="mt-6 rounded-3xl border border-[#6D001F]/10 bg-[#FFCC33]/15 p-5 text-sm text-neutral-700">
+          <div className="font-semibold text-[#6D001F]">Linked UMN Calendar Event</div>
+          <div className="mt-2 text-base font-medium text-neutral-900">{sourceEvent.title}</div>
+          <div className="mt-2">{sourceEvent.startsAt} · {sourceEvent.location}</div>
+          {sourceEvent.organizerName && <div className="mt-1">Organized by {sourceEvent.organizerName}</div>}
+          <a href={sourceEvent.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-block font-medium underline">
+            Check the original UMN event ↗
+          </a>
+        </div>
+      )}
 
       <form
         onSubmit={submit}

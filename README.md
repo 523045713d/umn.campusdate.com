@@ -27,6 +27,11 @@ Create `.env.local`:
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 
+# Server-only importer credentials. Never use a NEXT_PUBLIC_ prefix.
+SUPABASE_SERVICE_ROLE_KEY=...
+CRON_SECRET=...
+UMN_EVENTS_FEED_URL=https://events.tc.umn.edu/live/json/events/max/250
+
 # Server-only AI planning key. Never use a NEXT_PUBLIC_ prefix.
 GEMINI_API_KEY=...
 GEMINI_MODEL=gemini-3.5-flash-lite
@@ -145,3 +150,18 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 
 - The deployed application must include both the `Others` UI and the `delete_plan` call (this branch or a later branch containing it). A deployment still built from an earlier branch, including `main` before these updates are merged, will keep its old category list.
 - Run `009_others_category.sql` and `010_plan_management.sql` in the **same Supabase project** configured for that deployment, in that order. `009` renames existing `Build` rows; `010` installs the checked `delete_plan` function. If deletion fails, the page now displays the database error or points out a missing migration instead of only saying "Could not delete plan."
+
+### 2026-09-27 (America/Chicago) — UMN calendar event discovery
+
+- `/events` lists upcoming public events imported from the official UMN Events Calendar JSON feed. Each card identifies the source, the original organizer, and `CampusDate Event Importer`; CampusCrew never represents the imported event as a student-created or University-operated CampusCrew account.
+- Students select **Find people to go with** to open a prefilled Plan form. The signed-in student becomes the real Plan creator, and the resulting Plan keeps a link to the original UMN event for current registration, cost, eligibility, schedule, and cancellation details.
+- The importer stores only basic event facts, taxonomy labels, and the original source URL. It does not copy event descriptions, images, or contact details.
+- Apply `supabase/migrations/011_external_events.sql` after `010_plan_management.sql`. Add `SUPABASE_SERVICE_ROLE_KEY` and a strong `CRON_SECRET` as server-only Vercel environment variables. `UMN_EVENTS_FEED_URL` is optional and is restricted in code to the official `events.tc.umn.edu/live/json/events` endpoint.
+- `vercel.json` calls `/api/cron/umn-events` daily at 12:00 UTC. Vercel sends `Authorization: Bearer <CRON_SECRET>`. To run the first import manually after deployment:
+
+  ```bash
+  curl -H "Authorization: Bearer $CRON_SECRET" \
+    https://YOUR-DEPLOYMENT.vercel.app/api/cron/umn-events
+  ```
+
+- Imported rows are read-only to browser users through RLS. Only the server-side service role can insert or update them. Each recurring event occurrence receives a stable source ID plus start timestamp, so occurrences are not collapsed or duplicated on later imports. Events are marked expired after their reported end, or after a conservative fallback window when the source has no end time.
