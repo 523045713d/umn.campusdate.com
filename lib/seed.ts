@@ -46,7 +46,7 @@ export const seedPlans: Plan[] = [
     creator: "Nina",
     creatorId: null,
     title: "Hackathon Team — Need Frontend",
-    category: "Build",
+    category: "Others",
     description: "Looking for one or two people comfortable with React or UI work.",
     interests: ["React"],
     courses: [],

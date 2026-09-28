@@ -1,4 +1,4 @@
-# Campus MVP
+# CampusCrew
 
 Activity-first campus matching prototype built with Next.js, TypeScript, Tailwind CSS, and Supabase.
 
@@ -114,3 +114,34 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - The navigation bar shows an unread count. `/notifications` lists the latest 100 notifications, opens the related plan or group, and marks the opened notification as read. Realtime updates are used where available, with a 20-second refresh fallback.
 - Notifications are created by database triggers as part of the original request, review, or message transaction. Row-level security limits reads to the recipient; a checked database function marks only the signed-in recipient's notifications as read. Existing historical events are not backfilled.
 - Apply `supabase/migrations/008_notifications.sql` after `007_availability_matching.sql` before deploying this branch. This is an in-app inbox; it does not send email or push messages.
+
+### 2026-09-27 (America/Chicago) — CampusCrew branding
+
+- Renamed the visible project name, browser title, and npm package to CampusCrew.
+- Added a compact two-ring SVG mark to the navigation bar and browser tab. The editable asset is `public/campuscrew-mark.svg`; no database migration or new environment variable is required.
+
+### 2026-09-27 (America/Chicago) — UMN-inspired logo colors
+
+- Updated the original CampusCrew two-ring logo to a maroon `#6D001F` background and gold `#FFCC33` accent, using the University of Minnesota's current color palette. The logo remains an original CampusCrew design, rather than a university mark.
+
+### 2026-09-27 (America/Chicago) — Others category
+
+- Renamed the `Build` activity category to `Others` in the creation form, discovery filter, activity cards, and demo data. Until the migration runs, existing `Build` plans also appear as `Others` in the app.
+- Apply `supabase/migrations/009_others_category.sql` after `008_notifications.sql` to rename existing database rows. The migration only changes the category label; it preserves the plans and their members.
+
+### 2026-09-27 (America/Chicago) — Plan deletion and administrator roles
+
+- Plan creators can permanently delete their own plans from the plan page. Administrators can delete any plan from the plan page or `/admin`. Deletion also removes associated group content, memberships, requests, chat messages, and notifications through existing database cascades; both screens ask for confirmation.
+- `/admin` lists users and plans and lets an administrator grant or remove administrator roles. Administrators cannot remove their own role. Database functions check permissions for every role change and deletion; direct profile updates cannot change the role column.
+- Apply `supabase/migrations/010_plan_management.sql` after `009_others_category.sql`. To initialize the **first** administrator, sign up normally, then run this **once in the Supabase SQL Editor** as a database owner, replacing the UUID with that account's Auth user ID:
+
+  ```sql
+  update public.users set role = 'admin' where id = '<YOUR_AUTH_USER_UUID>'::uuid;
+  ```
+
+  Subsequent administrators can be assigned from `/admin`. No service role key is exposed to the browser.
+
+#### Deployment check for Others and deletion
+
+- The deployed application must include both the `Others` UI and the `delete_plan` call (this branch or a later branch containing it). A deployment still built from an earlier branch, including `main` before these updates are merged, will keep its old category list.
+- Run `009_others_category.sql` and `010_plan_management.sql` in the **same Supabase project** configured for that deployment, in that order. `009` renames existing `Build` rows; `010` installs the checked `delete_plan` function. If deletion fails, the page now displays the database error or points out a missing migration instead of only saying "Could not delete plan."

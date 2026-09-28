@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 export type Profile = {
   id: string;
+  role: "student" | "admin";
   name: string;
   email: string;
   major: string | null;
