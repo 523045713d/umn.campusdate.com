@@ -20,6 +20,7 @@ export const seedPlans: Plan[] = [
     reasons: ["Same course", "Strong time overlap", "Prefers small study groups"],
     members: ["Alex", "Sarah", "Kevin"],
     memberIds: [],
+    externalEvent: null,
   },
   {
     id: "plan-102",
@@ -40,6 +41,7 @@ export const seedPlans: Plan[] = [
     reasons: ["Available at the same time", "Sports interest overlap", "Group size fits"],
     members: ["Maya", "Jordan", "Leo", "Emma", "Chris"],
     memberIds: [],
+    externalEvent: null,
   },
   {
     id: "plan-103",
@@ -60,5 +62,6 @@ export const seedPlans: Plan[] = [
     reasons: ["Similar technical interests", "Availability overlap", "Complementary skill fit"],
     members: ["Nina", "Owen"],
     memberIds: [],
+    externalEvent: null,
   },
 ];

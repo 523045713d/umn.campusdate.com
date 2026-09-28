@@ -26,6 +26,12 @@ type PlanRow = {
     user_id: string | null;
     member_name: string;
   }>;
+  external_events?: {
+    id: string;
+    source_name: string;
+    source_url: string;
+    organizer_name: string | null;
+  } | null;
 };
 
 function mapPlan(row: PlanRow): Plan {
@@ -52,6 +58,14 @@ function mapPlan(row: PlanRow): Plan {
     memberIds: memberships
       .map((member) => member.user_id)
       .filter((id): id is string => Boolean(id)),
+    externalEvent: row.external_events
+      ? {
+          id: row.external_events.id,
+          sourceName: row.external_events.source_name,
+          sourceUrl: row.external_events.source_url,
+          organizerName: row.external_events.organizer_name,
+        }
+      : null,
   };
 }
 
@@ -60,6 +74,12 @@ const planSelect = `
   plan_members (
     user_id,
     member_name
+  ),
+  external_events (
+    id,
+    source_name,
+    source_url,
+    organizer_name
   )
 `;
 
@@ -132,6 +152,7 @@ export async function createPlan(input: {
   startTime: string;
   startsAtIso: string;
   maxPeople: number;
+  externalEventId?: string | null;
 }): Promise<Plan> {
   const user = await getCurrentUser();
 
@@ -157,6 +178,7 @@ export async function createPlan(input: {
       starts_at: input.startsAtIso,
       duration: "Flexible",
       max_people: input.maxPeople,
+      external_event_id: input.externalEventId ?? null,
     })
     .select()
     .single();

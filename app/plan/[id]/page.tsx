@@ -126,6 +126,15 @@ export default function PlanDetail() {
             <p className="mt-3 text-sm text-neutral-500">
               Created by {plan.creator}
             </p>
+            {plan.externalEvent && (
+              <div className="mt-4 rounded-2xl border border-[#6D001F]/10 bg-[#FFCC33]/15 p-4 text-sm text-neutral-700">
+                <div className="font-semibold text-[#6D001F]">Crew for a UMN Calendar Event</div>
+                {plan.externalEvent.organizerName && <div className="mt-1">Organized by {plan.externalEvent.organizerName}</div>}
+                <a href={plan.externalEvent.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block font-medium underline">
+                  Check the original {plan.externalEvent.sourceName} listing ↗
+                </a>
+              </div>
+            )}
           </div>
 
           {plan.matchScore !== null && (
