@@ -1,4 +1,4 @@
-# Campus MVP
+# CampusCrew
 
 Activity-first campus matching prototype built with Next.js, TypeScript, Tailwind CSS, and Supabase.
 
@@ -111,3 +111,8 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - The navigation bar shows an unread count. `/notifications` lists the latest 100 notifications, opens the related plan or group, and marks the opened notification as read. Realtime updates are used where available, with a 20-second refresh fallback.
 - Notifications are created by database triggers as part of the original request, review, or message transaction. Row-level security limits reads to the recipient; a checked database function marks only the signed-in recipient's notifications as read. Existing historical events are not backfilled.
 - Apply `supabase/migrations/008_notifications.sql` after `007_availability_matching.sql` before deploying this branch. This is an in-app inbox; it does not send email or push messages.
+
+### 2026-09-27 (America/Chicago) — CampusCrew branding
+
+- Renamed the visible project name, browser title, and npm package to CampusCrew.
+- Added a compact two-ring SVG mark to the navigation bar and browser tab. The editable asset is `public/campuscrew-mark.svg`; no database migration or new environment variable is required.

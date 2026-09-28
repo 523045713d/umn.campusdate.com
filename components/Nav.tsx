@@ -40,8 +40,9 @@ export function Nav() {
   return (
     <nav className="border-b border-black/5 bg-white/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
-          Campus Project
+        <Link href="/" className="flex items-center gap-2.5 text-lg font-semibold tracking-tight" aria-label="CampusCrew home">
+          <img src="/campuscrew-mark.svg" alt="" width="34" height="34" className="h-[34px] w-[34px]" />
+          CampusCrew
         </Link>
 
         <div className="flex items-center gap-5 text-sm text-neutral-700">
