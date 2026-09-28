@@ -19,10 +19,10 @@ type UmnFeedItem = {
 };
 
 export type ExternalEventUpsert = {
-  source: "umn_calendar";
+  source: "umn_calendar" | "ticketmaster";
   external_id: string;
-  importer_name: "CampusDate Event Importer";
-  source_name: "UMN Events Calendar";
+  importer_name: string;
+  source_name: string;
   source_url: string;
   title: string;
   summary: string;

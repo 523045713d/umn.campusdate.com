@@ -52,11 +52,11 @@ export default function CreatePage() {
             || event.status !== "active"
             || new Date(event.expiresAtIso).getTime() <= Date.now()
           ) {
-            setError("This UMN event is no longer available for a new plan.");
+            setError("This event is no longer available for a new plan.");
           } else {
             setSourceEvent(event);
             setTitle(`Go to ${event.title}`);
-            setCategory("Event");
+            setCategory(event.categories.includes("Sports") ? "Sports" : "Event");
             setDescription(`Looking for people to attend ${event.title} together.`);
             setInterests(event.tags.filter((tag) => !tag.includes(",")).slice(0, 10).join(", "));
             setLocation(event.location);
@@ -68,7 +68,7 @@ export default function CreatePage() {
           }
         } catch (loadError) {
           console.error(loadError);
-          if (active) setError("Could not load the selected UMN event.");
+          if (active) setError("Could not load the selected event.");
         }
       }
 
@@ -127,7 +127,7 @@ export default function CreatePage() {
     <section className="mx-auto max-w-2xl">
       <div>
         <div className="text-sm text-neutral-500">
-          {sourceEvent ? "Create a crew for a UMN calendar event" : "Create a new plan"}
+          {sourceEvent ? "Create a crew for an event" : "Create a new plan"}
         </div>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">
           What do you want to do?
@@ -136,12 +136,12 @@ export default function CreatePage() {
 
       {sourceEvent && (
         <div className="mt-6 rounded-3xl border border-[#6D001F]/10 bg-[#FFCC33]/15 p-5 text-sm text-neutral-700">
-          <div className="font-semibold text-[#6D001F]">Linked UMN Calendar Event</div>
+          <div className="font-semibold text-[#6D001F]">Linked {sourceEvent.sourceName} event</div>
           <div className="mt-2 text-base font-medium text-neutral-900">{sourceEvent.title}</div>
           <div className="mt-2">{sourceEvent.startsAt} · {sourceEvent.location}</div>
           {sourceEvent.organizerName && <div className="mt-1">Organized by {sourceEvent.organizerName}</div>}
           <a href={sourceEvent.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-block font-medium underline">
-            Check the original UMN event ↗
+            Check the original event ↗
           </a>
         </div>
       )}

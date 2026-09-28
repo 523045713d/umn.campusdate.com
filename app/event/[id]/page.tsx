@@ -33,10 +33,10 @@ export default function ExternalEventDetailPage() {
 
   return (
     <section className="mx-auto max-w-3xl">
-      <Link href="/events" className="text-sm text-neutral-500">← Back to UMN events</Link>
+      <Link href="/events" className="text-sm text-neutral-500">← Back to events</Link>
       <div className="mt-5 rounded-[2rem] border border-black/5 bg-white p-7 shadow-sm">
         <div className="flex flex-wrap gap-2 text-xs font-medium">
-          <span className="rounded-full bg-[#6D001F] px-3 py-1 text-white">UMN Calendar Event</span>
+          <span className="rounded-full bg-[#6D001F] px-3 py-1 text-white">{event.source === "umn_calendar" ? "UMN Calendar" : event.categories.includes("Concerts") ? "Concert" : "Sports"}</span>
           <span className="rounded-full bg-[#FFCC33]/30 px-3 py-1 text-[#6D001F]">
             Imported by {event.importerName}
           </span>
@@ -51,7 +51,7 @@ export default function ExternalEventDetailPage() {
         <div className="mt-7 grid gap-3 rounded-2xl bg-neutral-50 p-5 text-sm text-neutral-700 md:grid-cols-2">
           <div>📍 {event.location}</div>
           <div>🕒 {event.startsAt}</div>
-          {event.organizerName && <div>🏫 Organized by {event.organizerName}</div>}
+          {event.organizerName && <div>🎟️ {event.organizerName}</div>}
           <div>🔗 Source: {event.sourceName}</div>
         </div>
 
@@ -70,7 +70,7 @@ export default function ExternalEventDetailPage() {
             </Link>
           )}
           <a href={event.sourceUrl} target="_blank" rel="noreferrer" className="rounded-2xl border border-black/10 px-5 py-3 font-medium">
-            View original UMN event ↗
+            View original event ↗
           </a>
         </div>
 

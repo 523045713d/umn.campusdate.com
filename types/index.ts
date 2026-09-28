@@ -2,6 +2,7 @@ export type PlanCategory = "Study" | "Food" | "Sports" | "Event" | "Others";
 
 export type ExternalEvent = {
   id: string;
+  source: "umn_calendar" | "ticketmaster";
   externalId: string;
   importerName: string;
   sourceName: string;

@@ -11,7 +11,7 @@ export function PlanCard({ plan }: { plan: Plan }) {
           <div className="text-sm text-neutral-500">{iconMap[plan.category]} {plan.category}</div>
           {plan.externalEvent && (
             <div className="mt-2 inline-flex rounded-full bg-[#FFCC33]/30 px-2.5 py-1 text-xs font-medium text-[#6D001F]">
-              Crew for a UMN Calendar Event
+              Crew for a {plan.externalEvent.sourceName} event
             </div>
           )}
           <h2 className="mt-2 text-xl font-semibold leading-snug">{plan.title}</h2>

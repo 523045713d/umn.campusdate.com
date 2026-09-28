@@ -5,6 +5,7 @@ import type { ExternalEvent } from "@/types";
 
 type ExternalEventRow = {
   id: string;
+  source: "umn_calendar" | "ticketmaster";
   external_id: string;
   importer_name: string;
   source_name: string;
@@ -36,6 +37,7 @@ function formatStart(row: ExternalEventRow): string {
 function mapExternalEvent(row: ExternalEventRow): ExternalEvent {
   return {
     id: row.id,
+    source: row.source,
     externalId: row.external_id,
     importerName: row.importer_name,
     sourceName: row.source_name,
@@ -43,7 +45,7 @@ function mapExternalEvent(row: ExternalEventRow): ExternalEvent {
     title: row.title,
     summary: row.summary ?? "",
     organizerName: row.organizer_name,
-    location: row.location?.trim() || "See the UMN event page",
+    location: row.location?.trim() || "See the original event page",
     startsAt: formatStart(row),
     startsAtIso: row.starts_at,
     endsAtIso: row.ends_at,
@@ -59,17 +61,27 @@ function mapExternalEvent(row: ExternalEventRow): ExternalEvent {
 
 export async function loadExternalEvents(limit = 100): Promise<ExternalEvent[]> {
   const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 200);
-  const { data, error } = await supabase
-    .from("external_events")
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const activeQuery = (source: "umn_calendar" | "ticketmaster") => supabase
+    .from("external_events").select("*")
+    .eq("source", source).eq("status", "active")
+    .gte("expires_at", now.toISOString())
+    .order("starts_at", { ascending: true }).limit(safeLimit);
+  const expiredQuery = supabase.from("external_events")
     .select("*")
-    .eq("source", "umn_calendar")
-    .eq("status", "active")
-    .gte("expires_at", new Date().toISOString())
-    .order("starts_at", { ascending: true })
-    .limit(safeLimit);
-
-  if (error) throw error;
-  return (data ?? []).map((row) => mapExternalEvent(row as ExternalEventRow));
+    .in("status", ["expired", "canceled"])
+    .gte("expires_at", cutoff)
+    .order("starts_at", { ascending: false })
+    .limit(50);
+  const [umn, ticketmaster, expired] = await Promise.all([
+    activeQuery("umn_calendar"), activeQuery("ticketmaster"), expiredQuery,
+  ]);
+  if (umn.error) throw umn.error;
+  if (ticketmaster.error) throw ticketmaster.error;
+  if (expired.error) throw expired.error;
+  return [...(umn.data ?? []), ...(ticketmaster.data ?? []), ...(expired.data ?? [])]
+    .map((row) => mapExternalEvent(row as ExternalEventRow));
 }
 
 export async function loadExternalEvent(id: string): Promise<ExternalEvent | null> {
