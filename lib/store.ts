@@ -14,7 +14,7 @@ type PlanRow = {
   description: string;
   interests: string[] | null;
   courses: string[] | null;
-  category: PlanCategory;
+  category: PlanCategory | "Build";
   location: string;
   start_time: string;
   starts_at: string | null;
@@ -36,7 +36,7 @@ function mapPlan(row: PlanRow): Plan {
     creator: row.creator_name,
     creatorId: row.creator_id,
     title: row.title,
-    category: row.category,
+    category: row.category === "Build" ? "Others" : row.category,
     description: row.description,
     interests: row.interests ?? [],
     courses: row.courses ?? [],

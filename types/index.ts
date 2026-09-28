@@ -1,4 +1,4 @@
-export type PlanCategory = "Study" | "Food" | "Sports" | "Event" | "Build";
+export type PlanCategory = "Study" | "Food" | "Sports" | "Event" | "Others";
 
 export type Plan = {
   id: string;

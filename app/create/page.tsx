@@ -106,7 +106,7 @@ export default function CreatePage() {
             onChange={(e) => setCategory(e.target.value as PlanCategory)}
             className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3"
           >
-            {["Study", "Food", "Sports", "Event", "Build"].map((item) => (
+            {["Study", "Food", "Sports", "Event", "Others"].map((item) => (
               <option key={item}>{item}</option>
             ))}
           </select>

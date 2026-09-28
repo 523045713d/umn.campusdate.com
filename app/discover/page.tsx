@@ -14,7 +14,7 @@ const categories: Array<"All" | PlanCategory> = [
   "Food",
   "Sports",
   "Event",
-  "Build",
+  "Others",
 ];
 
 export default function DiscoverPage() {

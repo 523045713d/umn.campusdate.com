@@ -120,3 +120,8 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 ### 2026-09-27 (America/Chicago) — UMN-inspired logo colors
 
 - Updated the original CampusCrew two-ring logo to a maroon `#6D001F` background and gold `#FFCC33` accent, using the University of Minnesota's current color palette. The logo remains an original CampusCrew design, rather than a university mark.
+
+### 2026-09-27 (America/Chicago) — Others category
+
+- Renamed the `Build` activity category to `Others` in the creation form, discovery filter, activity cards, and demo data. Until the migration runs, existing `Build` plans also appear as `Others` in the app.
+- Apply `supabase/migrations/009_others_category.sql` after `008_notifications.sql` to rename existing database rows. The migration only changes the category label; it preserves the plans and their members.
