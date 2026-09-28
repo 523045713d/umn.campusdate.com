@@ -7,6 +7,7 @@ import { getCurrentUser, getCurrentProfile } from "@/lib/auth";
 import type { Plan } from "@/types";
 import { loadJoinRequests, loadPlan, requestJoin, reviewJoinRequest } from "@/lib/store";
 import type { JoinRequest } from "@/lib/store";
+import { deletePlan } from "@/lib/plan-management";
 
 export default function PlanDetail() {
   const params = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ export default function PlanDetail() {
 
   const [plan, setPlan] = useState<Plan | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [working, setWorking] = useState(false);
@@ -26,6 +28,7 @@ export default function PlanDetail() {
         const result = await loadPlan(params.id, profile);
         setPlan(result);
         setCurrentUserId(user?.id ?? null);
+        setIsAdmin(profile?.role === "admin");
         const joinRequests = user && result ? await loadJoinRequests(params.id) : [];
         setRequests(joinRequests);
       } catch {
@@ -73,6 +76,19 @@ export default function PlanDetail() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not review request.");
     } finally {
+      setWorking(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!plan || !window.confirm(`Delete "${plan.title}" permanently? Group messages, memberships, and join requests will also be deleted.`)) return;
+    setWorking(true);
+    setError("");
+    try {
+      await deletePlan(plan.id);
+      router.replace(isAdmin && !isCreator ? "/admin" : "/group");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete plan.");
       setWorking(false);
     }
   }
@@ -199,6 +215,12 @@ export default function PlanDetail() {
           {ownRequest?.status === "rejected" && !joined && <p className="self-center text-sm text-neutral-600">Your previous request was declined.</p>}
           {(joined || isCreator) && <Link href={`/group/${plan.id}`} className="rounded-2xl border border-black/10 px-5 py-3 font-medium">View Group</Link>}
         </div>
+        {(isCreator || isAdmin) && <div className="mt-10 border-t border-black/10 pt-6">
+          <button type="button" disabled={working} onClick={() => void handleDelete()} className="rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50">
+            {working ? "Working..." : "Delete plan"}
+          </button>
+          <p className="mt-2 text-xs text-neutral-500">Permanently removes this plan and its group content.</p>
+        </div>}
       </div>
     </section>
   );

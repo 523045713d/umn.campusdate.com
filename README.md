@@ -125,3 +125,15 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 
 - Renamed the `Build` activity category to `Others` in the creation form, discovery filter, activity cards, and demo data. Until the migration runs, existing `Build` plans also appear as `Others` in the app.
 - Apply `supabase/migrations/009_others_category.sql` after `008_notifications.sql` to rename existing database rows. The migration only changes the category label; it preserves the plans and their members.
+
+### 2026-09-27 (America/Chicago) — Plan deletion and administrator roles
+
+- Plan creators can permanently delete their own plans from the plan page. Administrators can delete any plan from the plan page or `/admin`. Deletion also removes associated group content, memberships, requests, chat messages, and notifications through existing database cascades; both screens ask for confirmation.
+- `/admin` lists users and plans and lets an administrator grant or remove administrator roles. Administrators cannot remove their own role. Database functions check permissions for every role change and deletion; direct profile updates cannot change the role column.
+- Apply `supabase/migrations/010_plan_management.sql` after `009_others_category.sql`. To initialize the **first** administrator, sign up normally, then run this **once in the Supabase SQL Editor** as a database owner, replacing the UUID with that account's Auth user ID:
+
+  ```sql
+  update public.users set role = 'admin' where id = '<YOUR_AUTH_USER_UUID>'::uuid;
+  ```
+
+  Subsequent administrators can be assigned from `/admin`. No service role key is exposed to the browser.
