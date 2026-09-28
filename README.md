@@ -156,7 +156,7 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 - `/events` lists upcoming public events imported from the official UMN Events Calendar JSON feed. Each card identifies the source, the original organizer, and `CampusDate Event Importer`; CampusCrew never represents the imported event as a student-created or University-operated CampusCrew account.
 - Students select **Find people to go with** to open a prefilled Plan form. The signed-in student becomes the real Plan creator, and the resulting Plan keeps a link to the original UMN event for current registration, cost, eligibility, schedule, and cancellation details.
 - The importer stores only basic event facts, taxonomy labels, and the original source URL. It does not copy event descriptions, images, or contact details.
-- Apply `supabase/migrations/011_external_events.sql` after `010_plan_management.sql`. Add `SUPABASE_SERVICE_ROLE_KEY` and a strong `CRON_SECRET` as server-only Vercel environment variables. `UMN_EVENTS_FEED_URL` is optional and is restricted in code to the official `events.tc.umn.edu/live/json/events` endpoint.
+- Apply `supabase/migrations/011_external_events.sql` after `010_plan_management.sql`, followed by `012_external_event_retention.sql`. Migration `012` also repairs the explicit server-role permissions for projects that applied the original version of `011`. Add `SUPABASE_SERVICE_ROLE_KEY` and a strong `CRON_SECRET` as server-only Vercel environment variables. `UMN_EVENTS_FEED_URL` is optional and is restricted in code to the official `events.tc.umn.edu/live/json/events` endpoint.
 - `vercel.json` calls `/api/cron/umn-events` daily at 12:00 UTC. Vercel sends `Authorization: Bearer <CRON_SECRET>`. To run the first import manually after deployment:
 
   ```bash
@@ -164,4 +164,4 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
     https://YOUR-DEPLOYMENT.vercel.app/api/cron/umn-events
   ```
 
-- Imported rows are read-only to browser users through RLS. Only the server-side service role can insert or update them. Each recurring event occurrence receives a stable source ID plus start timestamp, so occurrences are not collapsed or duplicated on later imports. Events are marked expired after their reported end, or after a conservative fallback window when the source has no end time.
+- Imported rows are read-only to browser users through RLS. Only the server-side service role can insert or update them. Each recurring event occurrence receives a stable source ID plus start timestamp, so occurrences are not collapsed or duplicated on later imports. Events are marked expired after their reported end, or after a conservative fallback window when the source has no end time. The daily sync retains expired events for 30 days, then permanently deletes only rows that have no student-created Plan referencing them; linked event history remains available.

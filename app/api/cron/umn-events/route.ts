@@ -5,6 +5,19 @@ import { fetchUmnEvents } from "@/lib/umn-events-feed";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (
+    typeof error === "object"
+    && error !== null
+    && "message" in error
+    && typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  return "UMN events sync failed";
+}
+
 function authorize(request: NextRequest): NextResponse | null {
   const secret = process.env.CRON_SECRET;
   if (!secret) {
@@ -50,16 +63,22 @@ export async function GET(request: NextRequest) {
       .lt("expires_at", now);
     if (expireError) throw expireError;
 
+    const { data: deleted, error: cleanupError } = await supabase
+      .rpc("cleanup_expired_external_events");
+    if (cleanupError) throw cleanupError;
+
     return NextResponse.json({
       fetched: events.length,
       upserted: events.length,
       expired: expired ?? 0,
+      deleted: typeof deleted === "number" ? deleted : 0,
+      retentionDays: 30,
       syncedAt: now,
     });
   } catch (error) {
     console.error("UMN events sync failed:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "UMN events sync failed" },
+      { error: errorMessage(error) },
       { status: 500 },
     );
   }

@@ -34,6 +34,7 @@ create index if not exists external_events_upcoming_idx
 
 alter table public.external_events enable row level security;
 grant select on public.external_events to anon, authenticated;
+grant select, insert, update on public.external_events to service_role;
 revoke insert, update, delete on public.external_events from public, anon, authenticated;
 
 drop policy if exists "public read external events" on public.external_events;
