@@ -137,3 +137,8 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
   ```
 
   Subsequent administrators can be assigned from `/admin`. No service role key is exposed to the browser.
+
+#### Deployment check for Others and deletion
+
+- The deployed application must include both the `Others` UI and the `delete_plan` call (this branch or a later branch containing it). A deployment still built from an earlier branch, including `main` before these updates are merged, will keep its old category list.
+- Run `009_others_category.sql` and `010_plan_management.sql` in the **same Supabase project** configured for that deployment, in that order. `009` renames existing `Build` rows; `010` installs the checked `delete_plan` function. If deletion fails, the page now displays the database error or points out a missing migration instead of only saying "Could not delete plan."
