@@ -116,3 +116,7 @@ Feature branches deploy as Vercel Preview deployments. Merge to `main` only afte
 
 - Renamed the visible project name, browser title, and npm package to CampusCrew.
 - Added a compact two-ring SVG mark to the navigation bar and browser tab. The editable asset is `public/campuscrew-mark.svg`; no database migration or new environment variable is required.
+
+### 2026-09-27 (America/Chicago) — UMN-inspired logo colors
+
+- Updated the original CampusCrew two-ring logo to a maroon `#6D001F` background and gold `#FFCC33` accent, using the University of Minnesota's current color palette. The logo remains an original CampusCrew design, rather than a university mark.
